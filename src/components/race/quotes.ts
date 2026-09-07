@@ -19,7 +19,7 @@ export function randomQuote(exclude?: string) {
 export function buildLongText(minutes: number, seed = ''): string {
   let h = 0;
   for (const c of seed.toUpperCase()) h = (h * 31 + c.charCodeAt(0)) % 997;
-  const targetWords = Math.max(120, minutes * 170);
+  const targetWords = Math.max(80, minutes * 70);
   const parts: string[] = [];
   let words = 0;
   let i = h % QUOTES.length;
@@ -33,8 +33,7 @@ export function buildLongText(minutes: number, seed = ''): string {
 }
 
 export function sharedTimedText(roomCode: string, minutes: number): string {
-  // +1 minute buffer so even elite typists never run out mid-race.
-  return buildLongText(minutes + 1, `room-${roomCode}`);
+  return buildLongText(minutes, `room-${roomCode}`);
 }
 
 export function sharedQuote(roomCode: string): string {
