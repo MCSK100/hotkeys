@@ -68,10 +68,11 @@ export default function Hero() {
           <p data-hero-fade className="mb-4 flex items-center gap-3 font-mono text-[10px] tracking-[0.42em] text-acid md:text-[11px]">
             <span className="inline-block h-px w-10 bg-acid" /> {'HOTKEYS // NIGHT CIRCUIT'}
           </p>
-          <h1 className="font-display leading-[0.86] text-white">
+          <h1 data-hero-line className="max-w-4xl font-display text-[11vw] leading-[0.95] text-white md:text-7xl">Free Typing Test & <span className="text-acid">Multiplayer Typing Race</span></h1>
+          <div aria-hidden="true" className="mt-4 font-display leading-[0.86] text-white">
             <span data-hero-line className="block text-[19vw] md:text-[11.5rem]">OWN THE</span>
             <span data-hero-line className="block text-[19vw] text-stroke md:text-[11.5rem]">STREETS<span className="text-acid" style={{ WebkitTextStroke: '0' }}>.</span></span>
-          </h1>
+          </div>
           <div className="mt-6 flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
             <div className="max-w-md">
               <p data-hero-fade className="text-[15px] leading-7 text-white/70">A typing race arena. Every keystroke is throttle — train solo to boost your WPM, then battle real rivals live.</p>

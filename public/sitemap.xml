@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://hottkeys.vercel.app/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
+  <url><loc>https://hottkeys.vercel.app/race</loc><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>https://hottkeys.vercel.app/tournaments</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://hottkeys.vercel.app/clans</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://hottkeys.vercel.app/about</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://hottkeys.vercel.app/fair-play</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://hottkeys.vercel.app/support</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://hottkeys.vercel.app/contact</loc><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://hottkeys.vercel.app/press</loc><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://hottkeys.vercel.app/careers</loc><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://hottkeys.vercel.app/status</loc><changefreq>daily</changefreq><priority>0.4</priority></url>
+</urlset>

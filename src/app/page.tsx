@@ -6,6 +6,7 @@ import Navbar from '@/components/site/Navbar';
 import Hero from '@/components/site/Hero';
 import GameIntro from '@/components/site/GameIntro';
 import GameModes from '@/components/site/GameModes';
+import SeoContent from '@/components/site/SeoContent';
 import FinalCTA from '@/components/site/FinalCTA';
 import Footer from '@/components/site/Footer';
 import Cursor from '@/components/site/Cursor';
@@ -34,6 +35,7 @@ export default function HomePage() {
       <Hero />
       <GameIntro />
       <GameModes />
+      <SeoContent />
       <FinalCTA />
       <Footer />
     </main>
