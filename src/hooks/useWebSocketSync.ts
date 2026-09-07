@@ -131,15 +131,21 @@ export function useRoom(roomCode: string | null, name: string, car: string, enab
   }, []);
 
   const startRace = useCallback(() => {
-    wsRef.current?.send(JSON.stringify({ type: 'HOST_START', payload: {} }));
+    const ws = wsRef.current;
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    ws.send(JSON.stringify({ type: 'HOST_START', payload: {} }));
   }, []);
 
   const setDuration = useCallback((minutes: number) => {
-    wsRef.current?.send(JSON.stringify({ type: 'SET_DURATION', payload: { minutes } }));
+    const ws = wsRef.current;
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    ws.send(JSON.stringify({ type: 'SET_DURATION', payload: { minutes } }));
   }, []);
 
   const setWeather = useCallback((weather: string) => {
-    wsRef.current?.send(JSON.stringify({ type: 'SET_WEATHER', payload: { weather } }));
+    const ws = wsRef.current;
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    ws.send(JSON.stringify({ type: 'SET_WEATHER', payload: { weather } }));
   }, []);
 
   return { players, connected, lobbySecs, go, myId: idRef.current, hostId, roomStatus, send, startRace, setGo, roomDuration, setDuration, roomWeather, setWeather };
