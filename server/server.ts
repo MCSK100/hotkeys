@@ -1,3 +1,4 @@
+import http from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
 
 const PORT = Number(process.env.PORT ?? 3001);
@@ -68,7 +69,17 @@ function startLobbyCountdown(room: Room) {
   }, 1000);
 }
 
-const server = new WebSocketServer({ port: PORT });
+const httpServer = http.createServer((req, res) => {
+  if (req.url === '/health' || req.url === '/') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ ok: true, rooms: rooms.size, service: 'hotkeys-race-server' }));
+    return;
+  }
+  res.writeHead(404);
+  res.end();
+});
+
+const server = new WebSocketServer({ server: httpServer });
 
 // Live site-wide presence: every open socket counts as one racer online.
 const allSockets = new Set<WebSocket>();
@@ -184,3 +195,7 @@ server.on('connection', (socket) => {
 });
 
 console.log(`HotKeys race server on ws://localhost:${PORT}`);
+
+httpServer.listen(PORT, '0.0.0.0', () => {
+  console.log(`listening on 0.0.0.0:${PORT}`);
+});

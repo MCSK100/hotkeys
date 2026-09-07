@@ -2,7 +2,7 @@ import InfoPage from '@/components/site/InfoPage';
 
 const faqs: [string, string][] = [
   ['How do I race friends?', 'Open Multiplayer, set your name, pick a car, hit Create Room, then Copy Invite Link and send it. They open the link, set their name and car, and hit Join Grid.'],
-  ['It says CONNECTING forever.', 'The live race server (npm run server) may be offline. Solo practice always works; multiplayer needs the socket server on ws://localhost:3001.'],
+  ['It says CONNECTING forever.', 'Multiplayer needs the race server (NEXT_PUBLIC_WS_URL). On Vercel set it to your Render URL wss://…onrender.com. Free Render sleeps — first join can take ~50s.'],
   ['The race restarted mid-type!', 'Fixed: races now start once per lobby round. If it still happens, rejoin with the same invite link.'],
   ['Can I change my car mid-race?', 'Cars lock when you join the grid so every driver keeps their identity for the whole race.'],
   ['Where are my stats?', 'Solo bests live on your device (AVG / BEST / RACES on the practice screen).'],

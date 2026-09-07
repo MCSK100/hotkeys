@@ -37,18 +37,24 @@ export function useRoom(roomCode: string | null, name: string, car: string, enab
     const identity = identityRef.current;
     const myId = idRef.current;
     let closed = false;
-    let ws: WebSocket;
-    try {
-      ws = new WebSocket(WS_URL);
-    } catch {
-      return;
-    }
-    wsRef.current = ws;
+    let ws: WebSocket | null = null;
+    let retry: ReturnType<typeof setTimeout> | null = null;
+    const connect = () => {
+      if (closed) return;
+      let sock: WebSocket;
+      try {
+        sock = new WebSocket(WS_URL);
+      } catch {
+        retry = setTimeout(connect, 2500);
+        return;
+      }
+      ws = sock;
+      wsRef.current = sock;
 
     ws.onopen = () => {
       if (closed) return;
       setConnected(true);
-      ws.send(JSON.stringify({ type: 'JOIN_ROOM', payload: { roomCode, profile: { id: myId, name: identity.name, car: identity.car } } }));
+      sock.send(JSON.stringify({ type: 'JOIN_ROOM', payload: { roomCode, profile: { id: myId, name: identity.name, car: identity.car } } }));
     };
     ws.onmessage = (e) => {
       try {
@@ -91,11 +97,20 @@ export function useRoom(roomCode: string | null, name: string, car: string, enab
         if (msg.type === 'RACE_END') setPlayers((prev) => [...prev]);
       } catch { /* ignore */ }
     };
-    ws.onclose = () => setConnected(false);
-    ws.onerror = () => setConnected(false);
+    ws.onclose = () => {
+      if (closed) return;
+      setConnected(false);
+      retry = setTimeout(connect, 2500);
+    };
+    ws.onerror = () => {
+      try { sock.close(); } catch { /* ignore */ }
+    };
+    };
+    connect();
     return () => {
       closed = true;
-      try { ws.close(); } catch { /* ignore */ }
+      if (retry) clearTimeout(retry);
+      try { ws?.close(); } catch { /* ignore */ }
       wsRef.current = null;
       setConnected(false);
     };
