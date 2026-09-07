@@ -70,7 +70,7 @@ export default function GifPicker({ onPick }: { onPick: (url: string) => void })
       {loading && gifs.length === 0 ? (
         <p className="py-3 text-center text-[11px] text-white/40">Loading GIFs…</p>
       ) : error ? (
-        <p className="py-3 text-center text-[11px] text-white/40">Couldn't load GIFs. Try again.</p>
+        <p className="py-3 text-center text-[11px] text-white/40">Couldn&apos;t load GIFs. Try again.</p>
       ) : (
         <div className="grid max-h-44 grid-cols-3 gap-1.5 overflow-y-auto">
           {gifs.map((g) => (
