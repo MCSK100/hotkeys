@@ -8,14 +8,15 @@ type Prog = { progressPercent: number; currentWpm: number; finished?: boolean };
 type Player = { id: string; name: string; car: string; progress: Prog; socket: WebSocket };
 const WEATHERS = ['rain', 'desert', 'forest', 'mountain'];
 
-type Room = { code: string; players: Map<string, Player>; status: string; timer: NodeJS.Timeout | null; lobbyN: number | null; durationMin: number; weather: string; hostId: string | null };
+type ChatMsg = { id: string; name: string; text: string; ts: number };
+type Room = { code: string; players: Map<string, Player>; status: string; timer: NodeJS.Timeout | null; lobbyN: number | null; durationMin: number; weather: string; hostId: string | null; chat: ChatMsg[] };
 
 const rooms = new Map<string, Room>();
 
 function getRoom(code: string): Room {
   let r = rooms.get(code);
   if (!r) {
-    r = { code, players: new Map(), status: 'lobby', timer: null, lobbyN: null, durationMin: 0, weather: 'rain', hostId: null };
+    r = { code, players: new Map(), status: 'lobby', timer: null, lobbyN: null, durationMin: 0, weather: 'rain', hostId: null, chat: [] };
     rooms.set(code, r);
   }
   return r;
@@ -115,6 +116,7 @@ server.on('connection', (socket) => {
         // First driver in the room becomes the host (room owner).
         if (!room.hostId || !room.players.has(room.hostId)) room.hostId = playerId;
         socket.send(JSON.stringify({ type: 'ROOM_STATE', room: snapshot(room) }));
+        socket.send(JSON.stringify({ type: 'CHAT_HISTORY', messages: room.chat.slice(-50) }));
         broadcast(room, { type: 'ROOM_STATE', room: snapshot(room) });
       }
       if (msg.type === 'HOST_START') {
@@ -159,6 +161,24 @@ server.on('connection', (socket) => {
             pid: p.id, c: 0, w: p.progress.currentWpm, p: p.progress.progressPercent, e: false,
           })),
         });
+      }
+      if (msg.type === 'CHAT') {
+        if (!roomCode || !playerId) return;
+        const room = rooms.get(roomCode);
+        if (!room) return;
+        const pl = room.players.get(playerId);
+        const text = String(msg.payload?.text ?? '').slice(0, 300).trim();
+        if (!text) return;
+        const chatMsg = {
+          id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          name: String(pl?.name ?? msg.payload?.name ?? 'RACER').slice(0, 16),
+          text,
+          ts: Date.now(),
+        };
+        room.chat.push(chatMsg);
+        if (room.chat.length > 100) room.chat = room.chat.slice(-100);
+        broadcast(room, { type: 'CHAT_NEW', message: chatMsg });
+        return;
       }
       if (msg.type === 'FINISH') {
         if (!roomCode) return;

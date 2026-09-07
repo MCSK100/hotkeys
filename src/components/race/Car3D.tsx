@@ -23,14 +23,10 @@ export default function Car3D({ color, moving = false, you = false, size = 'md' 
         @keyframes speedline { 0% { transform: translateX(6px); opacity: 0; } 30% { opacity: .65; } 100% { transform: translateX(-30px); opacity: 0; } }
       `}</style>
 
-      {/* ground shadow + neon underglow */}
+      {/* ground shadow */}
       <span
         className="absolute left-[8px] right-[8px] bottom-[1px] h-[9px] rounded-[50%]"
-        style={{ background: 'rgba(0,0,0,.62)', boxShadow: you ? `0 0 24px 4px ${color}66` : `0 0 12px 2px ${color}40` }}
-      />
-      <span
-        className="absolute left-[16px] right-[16px] bottom-[3px] h-[4px] rounded-full"
-        style={{ background: color, opacity: 0.8, filter: 'blur(4px)' }}
+        style={{ background: 'rgba(0,0,0,.55)' }}
       />
 
       {/* speed lines */}
@@ -39,8 +35,8 @@ export default function Car3D({ color, moving = false, you = false, size = 'md' 
           {[12, 22, 32].map((top, i) => (
             <span
               key={top}
-              className="absolute left-[-4px] h-[2px] w-[20px] rounded-full bg-white/50"
-              style={{ top, animation: `speedline .45s linear ${i * 0.15}s infinite` }}
+              className="absolute left-[-4px] h-[2px] w-[20px] rounded-full bg-white/25"
+              style={{ top, animation: `speedline .55s linear ${i * 0.18}s infinite` }}
             />
           ))}
         </>
@@ -50,19 +46,19 @@ export default function Car3D({ color, moving = false, you = false, size = 'md' 
       <span
         className="absolute top-[19px] left-[76px] h-[7px] w-[32px]"
         style={{
-          background: 'linear-gradient(90deg, rgba(255,255,240,.6), transparent)',
+          background: 'linear-gradient(90deg, rgba(255,255,240,.35), transparent)',
           clipPath: 'polygon(0 25%, 100% 0, 100% 100%, 0 75%)',
-          opacity: moving ? 1 : 0.3,
+          opacity: moving ? 0.8 : 0.25,
         }}
       />
-      {/* exhaust flames */}
+      {/* exhaust flame */}
       <span
         className="absolute top-[33px] left-[-4px] h-[6px] w-[13px] rounded-full"
         style={{
-          background: 'linear-gradient(270deg, #7dd3fc, #C6FF00 60%, transparent)',
+          background: 'linear-gradient(270deg, #cbd5e1, #94a3b8 60%, transparent)',
           transformOrigin: 'right center',
-          animation: moving ? 'flameflick .16s linear infinite' : 'none',
-          opacity: moving ? 1 : 0,
+          animation: moving ? 'flameflick .2s linear infinite' : 'none',
+          opacity: moving ? 0.7 : 0,
         }}
       />
 
@@ -138,13 +134,13 @@ export default function Car3D({ color, moving = false, you = false, size = 'md' 
         {/* headlight + DRL */}
         <span
           className="absolute rounded-full"
-          style={{ left: 81 * scale, top: 12.5 * scale, width: 5.5 * scale, height: 4.5 * scale, background: '#fefce8', boxShadow: '0 0 10px 3px rgba(254,252,232,.75)' }}
+          style={{ left: 81 * scale, top: 12.5 * scale, width: 5.5 * scale, height: 4.5 * scale, background: '#fefce8', boxShadow: '0 0 6px 1px rgba(254,252,232,.4)' }}
         />
-        <span className="absolute rounded-full bg-white/80" style={{ left: 76 * scale, top: 15.5 * scale, width: 7 * scale, height: 1.6 * scale, boxShadow: '0 0 6px rgba(255,255,255,.6)' }} />
-        {/* full-width taillight bar */}
+        <span className="absolute rounded-full bg-white/60" style={{ left: 76 * scale, top: 15.5 * scale, width: 7 * scale, height: 1.6 * scale }} />
+        {/* taillight bar */}
         <span
           className="absolute rounded-full"
-          style={{ left: 1 * scale, top: 13 * scale, width: 9 * scale, height: 4 * scale, background: 'linear-gradient(90deg,#7f1d1d,#ef4444)', boxShadow: '0 0 10px 3px rgba(239,68,68,.7)' }}
+          style={{ left: 1 * scale, top: 13 * scale, width: 9 * scale, height: 4 * scale, background: 'linear-gradient(90deg,#7f1d1d,#ef4444)' }}
         />
         {/* wheels with fenders */}
         {([19, 63] as const).map((x) => (
@@ -170,7 +166,7 @@ export default function Car3D({ color, moving = false, you = false, size = 'md' 
                   animation: moving ? 'wheelspin .32s linear infinite' : 'none',
                 }}
               />
-              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full" style={{ width: 4.5 * scale, height: 4.5 * scale, background: color, boxShadow: `0 0 6px ${color}` }} />
+              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full" style={{ width: 4.5 * scale, height: 4.5 * scale, background: '#cbd5e1' }} />
             </span>
           </span>
         ))}

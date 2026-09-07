@@ -5,9 +5,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? 'ws://localhost:3001';
 
 export type NetPlayer = { id: string; name: string; car: string; progress: number; wpm: number; finished: boolean };
+export type ChatMsg = { id: string; name: string; text: string; ts: number };
 
 export function useRoom(roomCode: string | null, name: string, car: string, enabled: boolean) {
   const [players, setPlayers] = useState<NetPlayer[]>([]);
+  const [chat, setChat] = useState<ChatMsg[]>([]);
   const [connected, setConnected] = useState(false);
   const [lobbySecs, setLobbySecs] = useState<number | null>(null);
   const [go, setGo] = useState(false);
@@ -26,6 +28,7 @@ export function useRoom(roomCode: string | null, name: string, car: string, enab
     setGo(false);
     setLobbySecs(null);
     setPlayers([]);
+    setChat([]);
     setRoomDuration(0);
     setRoomWeather('rain');
     setHostId(null);
@@ -90,6 +93,12 @@ export function useRoom(roomCode: string | null, name: string, car: string, enab
           });
         }
         if (msg.type === 'LOBBY_COUNTDOWN') setLobbySecs(msg.value);
+        if (msg.type === 'CHAT_HISTORY' && Array.isArray(msg.messages)) {
+          setChat(msg.messages.slice(-50));
+        }
+        if (msg.type === 'CHAT_NEW' && msg.message) {
+          setChat((prev) => [...prev.slice(-99), msg.message]);
+        }
         if (msg.type === 'RACE_START') {
           setLobbySecs(null);
           setGo(true);
@@ -148,5 +157,13 @@ export function useRoom(roomCode: string | null, name: string, car: string, enab
     ws.send(JSON.stringify({ type: 'SET_WEATHER', payload: { weather } }));
   }, []);
 
-  return { players, connected, lobbySecs, go, myId: idRef.current, hostId, roomStatus, send, startRace, setGo, roomDuration, setDuration, roomWeather, setWeather };
+  const sendChat = useCallback((text: string) => {
+    const ws = wsRef.current;
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    const clean = text.trim().slice(0, 300);
+    if (!clean) return;
+    ws.send(JSON.stringify({ type: 'CHAT', payload: { text: clean, name: identityRef.current.name } }));
+  }, []);
+
+  return { players, chat, sendChat, connected, lobbySecs, go, myId: idRef.current, hostId, roomStatus, send, startRace, setGo, roomDuration, setDuration, roomWeather, setWeather };
 }

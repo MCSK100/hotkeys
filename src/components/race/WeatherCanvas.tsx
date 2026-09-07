@@ -3,14 +3,13 @@
 import { useEffect, useRef } from 'react';
 import type { WeatherId } from './Track';
 
-type Drop = { x: number; y: number; vx: number; vy: number; l: number; a: number };
-type Flake = { x: number; y: number; r: number; vy: number; ph: number; sw: number; a: number };
-type Mote = { x: number; y: number; r: number; vx: number; vy: number; a: number; tw: number };
-type Fly = { x: number; y: number; r: number; ph: number; sp: number };
+type Drop = { x: number; y: number; vy: number; l: number; a: number };
+type Flake = { x: number; y: number; r: number; vy: number; ph: number; a: number };
+type Mote = { x: number; y: number; r: number; vx: number; a: number; tw: number };
 
 const rand = (a: number, b: number) => a + Math.random() * (b - a);
 
-/** Canvas particle weather overlay — rain streaks, snow, dust, fireflies. */
+/** Subtle premium weather overlay — soft rain, snow, dust, mist. */
 export default function WeatherCanvas({ weather }: { weather: WeatherId }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const weatherRef = useRef(weather);
@@ -40,35 +39,9 @@ export default function WeatherCanvas({ weather }: { weather: WeatherId }) {
     resize();
     window.addEventListener('resize', resize);
 
-    const drops: Drop[] = Array.from({ length: 150 }, () => spawnDrop(true));
-    const flakes: Flake[] = Array.from({ length: 130 }, () => spawnFlake(true));
-    const motes: Mote[] = Array.from({ length: 55 }, () => spawnMote(true));
-    const flies: Fly[] = Array.from({ length: 24 }, () => spawnFly(true));
-
-    function spawnDrop(anywhere = false): Drop {
-      const v = rand(0, 1);
-      const windEffect = rand(-0.5, 0.5); // Wind variation
-      return {
-        x: rand(0, w + 40), y: anywhere ? rand(0, h) : rand(-30, -10),
-        vx: -2.2 - v * 2.2 + windEffect, vy: 9 + v * 8,
-        l: 10 + v * 16, a: 0.12 + v * 0.3,
-      };
-    }
-    function spawnFlake(anywhere = false): Flake {
-      return {
-        x: rand(0, w), y: anywhere ? rand(0, h) : rand(-12, -2),
-        r: rand(1, 3), vy: rand(0.5, 1.6), ph: rand(0, Math.PI * 2), sw: rand(0.4, 1.4), a: rand(0.35, 0.9),
-      };
-    }
-    function spawnMote(anywhere = false): Mote {
-      return {
-        x: anywhere ? rand(0, w) : rand(w * 0.4, w + 60), y: rand(0, h),
-        r: rand(14, 42), vx: rand(0.25, 0.8), vy: rand(-0.12, 0.12), a: rand(0.04, 0.1), tw: rand(0, Math.PI * 2),
-      };
-    }
-    function spawnFly(anywhere = false): Fly {
-      return { x: rand(0, w), y: anywhere ? rand(0, h) : rand(0, h), r: rand(1.4, 2.6), ph: rand(0, Math.PI * 2), sp: rand(0.4, 1) };
-    }
+    const drops: Drop[] = Array.from({ length: 70 }, () => ({ x: rand(0, 900), y: rand(0, 400), vy: rand(7, 12), l: rand(8, 16), a: rand(0.06, 0.16) }));
+    const flakes: Flake[] = Array.from({ length: 60 }, () => ({ x: rand(0, 900), y: rand(0, 400), r: rand(0.8, 2.2), vy: rand(0.3, 0.9), ph: rand(0, 6.28), a: rand(0.2, 0.55) }));
+    const motes: Mote[] = Array.from({ length: 26 }, () => ({ x: rand(0, 900), y: rand(0, 400), r: rand(10, 30), vx: rand(0.15, 0.45), a: rand(0.03, 0.07), tw: rand(0, 6.28) }));
 
     let t = 0;
     const frame = () => {
@@ -76,97 +49,59 @@ export default function WeatherCanvas({ weather }: { weather: WeatherId }) {
       if (!visible) return;
       t += 0.016;
       const k = weatherRef.current;
-      ctx.clearRect(0, 0, w, h);
+      const cw = canvas.clientWidth || w;
+      const ch = canvas.clientHeight || h;
+      ctx.clearRect(0, 0, cw, ch);
 
       if (k === 'rain') {
         ctx.lineCap = 'round';
+        ctx.lineWidth = 1;
         for (const d of drops) {
-          d.x += d.vx; d.y += d.vy;
-          if (d.y > h + 20 || d.x < -30) Object.assign(d, spawnDrop());
-          const inv = 1 / Math.hypot(d.vx, d.vy);
-          ctx.strokeStyle = `rgba(174,194,224,${d.a.toFixed(3)})`;
-          ctx.lineWidth = 1.1;
+          d.y += d.vy;
+          if (d.x > cw) d.x = 0;
+          if (d.y > ch) { d.y = rand(-20, -5); d.x = rand(0, cw); }
+          ctx.strokeStyle = `rgba(170,190,220,${d.a.toFixed(3)})`;
           ctx.beginPath();
-          ctx.moveTo(d.x, d.y);
-          ctx.lineTo(d.x - d.vx * inv * d.l, d.y - d.vy * inv * d.l);
+          ctx.moveTo((d.x * cw) / 900, (d.y * ch) / 400);
+          ctx.lineTo((d.x * cw) / 900 - 1.5, ((d.y - d.l) * ch) / 400);
           ctx.stroke();
-          
-          // Add splash effect at road level
-          if (d.y > h - 40 && d.y < h - 30) {
-            ctx.strokeStyle = `rgba(174,194,224,${(d.a * 0.3).toFixed(3)})`;
-            ctx.lineWidth = 0.8;
-            ctx.beginPath();
-            ctx.arc(d.x, d.y, 2 + Math.random() * 2, 0, Math.PI);
-            ctx.stroke();
-          }
         }
       } else if (k === 'mountain') {
-        ctx.fillStyle = '#fff';
+        ctx.fillStyle = '#e8eefc';
         for (const f of flakes) {
-          f.y += f.vy; f.x += Math.sin(t * 1.6 + f.ph) * f.sw * 0.4;
-          if (f.y > h + 6) Object.assign(f, spawnFlake());
-          if (f.x < -6) f.x = w + 4;
+          f.y += f.vy;
+          f.x += Math.sin(t + f.ph) * 0.2;
+          if (f.y > 400) { f.y = -5; f.x = rand(0, 900); }
           ctx.globalAlpha = f.a;
           ctx.beginPath();
-          ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+          ctx.arc((f.x * cw) / 900, (f.y * ch) / 400, f.r, 0, Math.PI * 2);
           ctx.fill();
-          
-          // Add subtle shadow under snowflakes
-          if (f.r > 2) {
-            ctx.fillStyle = `rgba(200,220,240,${(f.a * 0.2).toFixed(3)})`;
-            ctx.beginPath();
-            ctx.ellipse(f.x, f.y + 1, f.r * 0.8, f.r * 0.3, 0, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#fff';
-          }
         }
         ctx.globalAlpha = 1;
       } else if (k === 'desert') {
         for (const m of motes) {
-          m.x -= m.vx; m.y += m.vy + Math.sin(t + m.tw) * 0.15;
-          if (m.x < -60) Object.assign(m, spawnMote());
-          const g = ctx.createRadialGradient(m.x, m.y, 0, m.x, m.y, m.r);
-          const a = (m.a * (0.7 + 0.3 * Math.sin(t * 1.4 + m.tw))).toFixed(3);
-          g.addColorStop(0, `rgba(245,178,92,${a})`);
-          g.addColorStop(1, 'rgba(245,178,92,0)');
+          m.x -= m.vx;
+          if (m.x < -40) { m.x = 940; m.y = rand(0, 400); }
+          const g = ctx.createRadialGradient((m.x * cw) / 900, (m.y * ch) / 400, 0, (m.x * cw) / 900, (m.y * ch) / 400, m.r);
+          g.addColorStop(0, `rgba(220,180,130,${m.a.toFixed(3)})`);
+          g.addColorStop(1, 'rgba(220,180,130,0)');
           ctx.fillStyle = g;
           ctx.beginPath();
-          ctx.arc(m.x, m.y, m.r, 0, Math.PI * 2);
+          ctx.arc((m.x * cw) / 900, (m.y * ch) / 400, m.r, 0, Math.PI * 2);
           ctx.fill();
-          
-          // Add dust streaks for movement
-          if (m.vx > 0.5) {
-            ctx.strokeStyle = `rgba(245,178,92,${(m.a * 0.3).toFixed(3)})`;
-            ctx.lineWidth = 0.5;
-            ctx.beginPath();
-            ctx.moveTo(m.x, m.y);
-            ctx.lineTo(m.x + m.r * 2, m.y + rand(-1, 1));
-            ctx.stroke();
-          }
         }
       } else {
-        for (const f of flies) {
-          f.x += Math.sin(t * f.sp + f.ph) * 0.35;
-          f.y += Math.cos(t * f.sp * 0.8 + f.ph) * 0.3;
-          if (f.x < 0) f.x = w; if (f.x > w) f.x = 0;
-          if (f.y < 0) f.y = h; if (f.y > h) f.y = 0;
-          const glow = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(t * 2.2 * f.sp + f.ph));
-          ctx.fillStyle = `rgba(190,242,100,${(0.85 * glow).toFixed(3)})`;
-          ctx.shadowColor = 'rgba(190,242,100,.8)';
-          ctx.shadowBlur = 10 * glow;
+        for (const f of flakes) {
+          f.y += f.vy * 0.5;
+          f.x += Math.sin(t * 0.7 + f.ph) * 0.25;
+          if (f.y > 400) { f.y = -5; f.x = rand(0, 900); }
+          ctx.globalAlpha = f.a * 0.5;
+          ctx.fillStyle = '#cfe8d4';
           ctx.beginPath();
-          ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+          ctx.arc((f.x * cw) / 900, (f.y * ch) / 400, Math.min(1.6, f.r), 0, Math.PI * 2);
           ctx.fill();
-          ctx.shadowBlur = 0;
-          
-          // Add glow trail for fireflies
-          if (glow > 0.7) {
-            ctx.fillStyle = `rgba(190,242,100,${(0.1 * glow).toFixed(3)})`;
-            ctx.beginPath();
-            ctx.arc(f.x - Math.sin(t * f.sp + f.ph) * 2, f.y - Math.cos(t * f.sp * 0.8 + f.ph) * 2, f.r * 1.5, 0, Math.PI * 2);
-            ctx.fill();
-          }
         }
+        ctx.globalAlpha = 1;
       }
     };
     raf = requestAnimationFrame(frame);
