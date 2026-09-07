@@ -201,6 +201,14 @@ export default function RacePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, name, carId, inRoom, players, myId, laneProgress, wpm, finished, car.color]);
 
+  const words = useMemo(() => {
+    const out: { word: string; start: number }[] = [];
+    const re = /\S+\s*/g;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(engine.text)) !== null) out.push({ word: m[0], start: m.index });
+    return out;
+  }, [engine.text]);
+
   const myPos = racers.findIndex((r) => r.you) + 1;
   const linkDur = (inRoom ? roomDuration : mpDuration) || 0;
   const linkWeather = inRoom ? (isWeather(roomWeather) ? roomWeather : 'rain') : mpWeather;
@@ -253,7 +261,6 @@ export default function RacePage() {
           <Link href="/" className="flex items-center gap-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/hotkeyslogo.png" alt="HotKeys" className="h-9 w-auto object-contain" />
-            <span className="text-sm font-semibold tracking-wide">HOTKEYS</span>
           </Link>
           <div className="flex items-center gap-2 text-[12px] font-medium">
             {inRoom && (
@@ -508,17 +515,26 @@ export default function RacePage() {
                 </p>
                 {engine.isTimed && <p className="shrink-0 text-sm font-semibold tabular-nums">{fmt(engine.timeLeft)}</p>}
               </div>
-              <p className="max-h-[220px] overflow-y-auto text-lg leading-9 tracking-wide md:text-xl" aria-live="polite" style={{ fontFamily: "'Inter','Space Grotesk',system-ui,sans-serif" }}>
-                {engine.text.split('').map((ch, i) => {
-                  const done = i < charIndex;
-                  const cur = i === charIndex && racing;
-                  const wrong = done && engine.errors[i];
+              <p className="max-h-[240px] overflow-y-auto text-xl leading-[2.75rem] md:text-[22px]" aria-live="polite" style={{ fontFamily: "'Inter','Space Grotesk',system-ui,sans-serif", letterSpacing: '0.045em' }}>
+                {words.map(({ word, start }) => {
+                  const end = start + word.length;
+                  const isCurrent = racing && charIndex >= start && charIndex < end;
                   return (
-                    <span
-                      key={i} id={`tc-${i}`}
-                      className={wrong ? 'rounded bg-red-500/25 text-red-400 underline' : done ? 'text-white' : cur ? 'rounded bg-white text-black' : 'text-white/35'}
-                    >
-                      {ch}
+                    <span key={start} className={isCurrent ? 'underline decoration-white/60 decoration-2 underline-offset-8' : undefined}>
+                      {word.split('').map((ch, k) => {
+                        const i = start + k;
+                        const done = i < charIndex;
+                        const cur = i === charIndex && racing;
+                        const wrong = done && engine.errors[i];
+                        return (
+                          <span key={i} id={`tc-${i}`}>
+                            {cur && <span className="blink -ml-[2px] inline-block h-[1.15em] w-[2px] translate-y-[4px] bg-white" />}
+                            <span className={wrong ? 'text-red-400' : done ? 'text-white' : 'text-white/30'}>
+                              {ch}
+                            </span>
+                          </span>
+                        );
+                      })}
                     </span>
                   );
                 })}

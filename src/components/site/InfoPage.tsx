@@ -10,7 +10,6 @@ export default function InfoPage({ kicker, title, intro, children }: { kicker: s
           <Link href="/" className="flex items-center gap-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/hotkeyslogo.png" alt="HotKeys" className="h-9 w-auto object-contain" />
-            <span className="font-tech text-sm font-bold tracking-[0.2em]">HOTKEYS</span>
           </Link>
           <Link href="/race" className="btn-race btn-primary !px-5 !py-2 !text-[11px]">ENTER GRID →</Link>
         </div>

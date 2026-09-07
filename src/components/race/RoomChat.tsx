@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { ChatMsg } from '@/hooks/useWebSocketSync';
+import GifPicker from './GifPicker';
 
 const EMOJIS = ['😀', '😂', '🔥', '🏎️', '💨', '👏', '😅', '🤝', '⚡', '🏁', '💪', '😎', '🎉', '👀', '💯', '🙌'];
 
@@ -17,7 +18,7 @@ export default function RoomChat({
 }) {
   const [draft, setDraft] = useState('');
   const [showEmoji, setShowEmoji] = useState(false);
-  const [showGifHelp, setShowGifHelp] = useState(false);
+  const [showGifs, setShowGifs] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -76,18 +77,14 @@ export default function RoomChat({
           ))}
         </div>
       )}
-      {showGifHelp && (
-        <p className="border-t border-white/10 px-4 py-2 text-[11px] leading-4 text-white/50">
-          Paste a GIF / image link (giphy, tenor, imgur…) and it will play inline like WhatsApp.
-        </p>
-      )}
+      {showGifs && <GifPicker onPick={(url) => { onSend(url); setShowGifs(false); }} />}
 
       <div className="border-t border-white/10 p-3">
         <div className="flex items-center gap-1.5">
-          <button onClick={() => { setShowEmoji((s) => !s); setShowGifHelp(false); }} aria-label="Emojis"
+          <button onClick={() => { setShowEmoji((s) => !s); setShowGifs(false); }} aria-label="Emojis"
             className={`rounded-lg border px-2.5 py-2 text-[15px] ${showEmoji ? 'border-white bg-white/10' : 'border-white/15'}`}>😀</button>
-          <button onClick={() => { setShowGifHelp((s) => !s); setShowEmoji(false); }} aria-label="GIF"
-            className={`rounded-lg border px-2.5 py-2 text-[11px] font-bold ${showGifHelp ? 'border-white bg-white/10 text-white' : 'border-white/15 text-white/60'}`}>GIF</button>
+          <button onClick={() => { setShowGifs((s) => !s); setShowEmoji(false); }} aria-label="GIF"
+            className={`rounded-lg border px-2.5 py-2 text-[11px] font-bold ${showGifs ? 'border-white bg-white/10 text-white' : 'border-white/15 text-white/60'}`}>GIF</button>
           <input
             value={draft} maxLength={300} data-chat="1" onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') submit(); e.stopPropagation(); }}
