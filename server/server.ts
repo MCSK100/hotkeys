@@ -1,0 +1,186 @@
+import { WebSocketServer, WebSocket } from 'ws';
+
+const PORT = Number(process.env.PORT ?? 3001);
+const LOBBY_WAIT = 15;
+
+type Prog = { progressPercent: number; currentWpm: number; finished?: boolean };
+type Player = { id: string; name: string; car: string; progress: Prog; socket: WebSocket };
+const WEATHERS = ['rain', 'desert', 'forest', 'mountain'];
+
+type Room = { code: string; players: Map<string, Player>; status: string; timer: NodeJS.Timeout | null; lobbyN: number | null; durationMin: number; weather: string; hostId: string | null };
+
+const rooms = new Map<string, Room>();
+
+function getRoom(code: string): Room {
+  let r = rooms.get(code);
+  if (!r) {
+    r = { code, players: new Map(), status: 'lobby', timer: null, lobbyN: null, durationMin: 0, weather: 'rain', hostId: null };
+    rooms.set(code, r);
+  }
+  return r;
+}
+
+function snapshot(room: Room) {
+  return {
+    code: room.code,
+    status: room.status,
+    duration: room.durationMin,
+    weather: room.weather,
+    hostId: room.hostId,
+    players: [...room.players.values()].map((p) => ({
+      id: p.id,
+      profile: { id: p.id, name: p.name, car: p.car },
+      progress: p.progress,
+    })),
+    countdown: 0,
+    raceStartTime: null,
+  };
+}
+
+function broadcast(room: Room, payload: unknown) {
+  const msg = JSON.stringify(payload);
+  for (const p of room.players.values()) {
+    if (p.socket.readyState === WebSocket.OPEN) p.socket.send(msg);
+  }
+}
+
+function startLobbyCountdown(room: Room) {
+  if (room.timer || room.status === 'racing') return;
+  room.status = 'countdown';
+  room.lobbyN = LOBBY_WAIT;
+  broadcast(room, { type: 'LOBBY_COUNTDOWN', value: room.lobbyN });
+  room.timer = setInterval(() => {
+    if (room.lobbyN === null) return;
+    room.lobbyN -= 1;
+    if (room.lobbyN <= 0) {
+      if (room.timer) clearInterval(room.timer);
+      room.timer = null;
+      room.lobbyN = null;
+      room.status = 'racing';
+      for (const p of room.players.values()) {
+        p.progress = { progressPercent: 0, currentWpm: 0 };
+      }
+      broadcast(room, { type: 'RACE_START', startTime: Date.now(), duration: room.durationMin, weather: room.weather });
+      broadcast(room, { type: 'ROOM_STATE', room: snapshot(room) });
+    } else {
+      broadcast(room, { type: 'LOBBY_COUNTDOWN', value: room.lobbyN });
+    }
+  }, 1000);
+}
+
+const server = new WebSocketServer({ port: PORT });
+
+// Live site-wide presence: every open socket counts as one racer online.
+const allSockets = new Set<WebSocket>();
+
+function broadcastCount() {
+  const msg = JSON.stringify({ type: 'ONLINE_COUNT', count: allSockets.size });
+  for (const s of allSockets) {
+    if (s.readyState === WebSocket.OPEN) s.send(msg);
+  }
+}
+
+server.on('connection', (socket) => {
+  allSockets.add(socket);
+  socket.send(JSON.stringify({ type: 'ONLINE_COUNT', count: allSockets.size }));
+  broadcastCount();
+
+  let roomCode: string | null = null;
+  let playerId: string | null = null;
+
+  socket.on('message', (raw) => {
+    try {
+      const msg = JSON.parse(raw.toString());
+      if (msg.type === 'JOIN_ROOM') {
+        const code = String(msg.payload?.roomCode ?? 'PUBLIC').toUpperCase().slice(0, 12);
+        const profile = msg.payload?.profile ?? {};
+        playerId = String(profile.id ?? `guest-${Math.random().toString(36).slice(2)}`);
+        const name = String(profile.name ?? 'RACER').slice(0, 16);
+        const car = String(profile.car ?? 'volt').slice(0, 16);
+        const room = getRoom(code);
+        roomCode = code;
+        const existing = room.players.get(playerId);
+        room.players.set(playerId, { id: playerId, name, car, progress: existing?.progress ?? { progressPercent: 0, currentWpm: 0 }, socket });
+        // First driver in the room becomes the host (room owner).
+        if (!room.hostId || !room.players.has(room.hostId)) room.hostId = playerId;
+        socket.send(JSON.stringify({ type: 'ROOM_STATE', room: snapshot(room) }));
+        broadcast(room, { type: 'ROOM_STATE', room: snapshot(room) });
+      }
+      if (msg.type === 'HOST_START') {
+        if (!roomCode || !playerId) return;
+        const room = rooms.get(roomCode);
+        if (!room || room.players.size === 0) return;
+        if (playerId !== room.hostId) return;
+        startLobbyCountdown(room);
+      }
+      if (msg.type === 'SET_DURATION') {
+        if (!roomCode || !playerId) return;
+        const room = rooms.get(roomCode);
+        if (!room || room.status === 'racing') return;
+        if (playerId !== room.hostId) return;
+        const mins = Number(msg.payload?.minutes ?? 0);
+        room.durationMin = [0, 3, 5, 10].includes(mins) ? mins : 0;
+        broadcast(room, { type: 'ROOM_STATE', room: snapshot(room) });
+      }
+      if (msg.type === 'SET_WEATHER') {
+        if (!roomCode || !playerId) return;
+        const room = rooms.get(roomCode);
+        if (!room || room.status === 'racing') return;
+        if (playerId !== room.hostId) return;
+        const w = String(msg.payload?.weather ?? 'rain');
+        room.weather = WEATHERS.includes(w) ? w : 'rain';
+        broadcast(room, { type: 'ROOM_STATE', room: snapshot(room) });
+      }
+      if (msg.type === 'PROGRESS') {
+        if (!roomCode || !playerId) return;
+        const room = rooms.get(roomCode);
+        if (!room) return;
+        const pl = room.players.get(playerId);
+        if (!pl) return;
+        pl.progress = {
+          progressPercent: Number(msg.payload?.progressPercent ?? 0),
+          currentWpm: Number(msg.payload?.currentWpm ?? 0),
+          finished: Boolean(msg.payload?.finished),
+        };
+        broadcast(room, {
+          type: 'PROGRESS_BATCH',
+          payloads: [...room.players.values()].map((p) => ({
+            pid: p.id, c: 0, w: p.progress.currentWpm, p: p.progress.progressPercent, e: false,
+          })),
+        });
+      }
+      if (msg.type === 'FINISH') {
+        if (!roomCode) return;
+        const room = rooms.get(roomCode);
+        if (!room) return;
+        const allDone = [...room.players.values()].length > 0 &&
+          [...room.players.values()].every((p) => (p.progress.progressPercent ?? 0) >= 1);
+        if (allDone) {
+          room.status = 'finished';
+          broadcast(room, { type: 'RACE_END' });
+        }
+      }
+    } catch {
+      socket.send(JSON.stringify({ type: 'ERROR', message: 'Invalid payload' }));
+    }
+  });
+
+  socket.on('close', () => {
+    allSockets.delete(socket);
+    broadcastCount();
+    if (!roomCode || !playerId) return;
+    const room = rooms.get(roomCode);
+    if (!room) return;
+    room.players.delete(playerId);
+    if (room.players.size === 0) {
+      if (room.timer) clearInterval(room.timer);
+      rooms.delete(roomCode);
+    } else {
+      // Promote the next driver if the host left.
+      if (room.hostId === playerId) room.hostId = [...room.players.keys()][0] ?? null;
+      broadcast(room, { type: 'ROOM_STATE', room: snapshot(room) });
+    }
+  });
+});
+
+console.log(`HotKeys race server on ws://localhost:${PORT}`);
