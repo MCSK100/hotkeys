@@ -34,7 +34,7 @@ export default function RoomChat({
   };
 
   return (
-    <aside className={`fixed right-0 top-0 z-40 flex h-full w-full max-w-[340px] flex-col border-l backdrop-blur-md ${light ? 'border-black/10 bg-white/95 text-black' : 'border-white/10 bg-[#0b0e14]/95 text-white'}`}>
+    <aside className={`fixed bottom-4 right-4 z-40 flex h-[min(52vh,440px)] w-[calc(100%-2rem)] max-w-[330px] flex-col overflow-hidden rounded-2xl border shadow-2xl backdrop-blur-md ${light ? 'border-black/10 bg-white/95 text-black' : 'border-white/10 bg-[#0b0e14]/95 text-white'}`}>
       <div className={`flex items-center justify-between border-b px-4 py-3 ${light ? 'border-black/10' : 'border-white/10'}`}>
         <div>
           <p className="text-[13px] font-semibold">Room chat</p>

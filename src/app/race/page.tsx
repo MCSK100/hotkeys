@@ -301,9 +301,19 @@ export default function RacePage() {
             <img src="/hotkeyslogo.png" alt="HotKeys" className="h-9 w-auto object-contain" />
           </Link>
           <div className="flex items-center gap-2 text-[12px] font-medium">
-            <button onClick={toggleTheme} aria-label="Toggle light and dark theme"
-              className={`rounded-full border px-3 py-1.5 transition ${light ? 'border-black/15 text-black/70 hover:border-black/40 hover:text-black' : 'border-white/15 text-white/70 hover:border-white/40 hover:text-white'}`}>
-              {light ? 'Light' : 'Dark'}
+            <button onClick={toggleTheme} aria-label={light ? 'Switch to dark mode' : 'Switch to light mode'} title={light ? 'Switch to dark mode' : 'Switch to light mode'}
+              className={`relative h-7 w-[54px] rounded-full border transition-colors duration-300 ${light ? 'border-black/15 bg-black/10' : 'border-white/15 bg-white/10'}`}>
+              <span className={`absolute top-[2px] flex h-[22px] w-[22px] items-center justify-center rounded-full shadow transition-all duration-300 ${light ? 'left-[28px] bg-black' : 'left-[2px] bg-white'}`}>
+                <span className="relative block h-3.5 w-3.5">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" className={`absolute inset-0 h-full w-full text-amber-400 transition-all duration-300 ${light ? 'rotate-0 scale-100 opacity-100' : 'rotate-90 scale-0 opacity-0'}`}>
+                    <circle cx="12" cy="12" r="4" />
+                    <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+                  </svg>
+                  <svg viewBox="0 0 24 24" fill="currentColor" className={`absolute inset-0 h-full w-full text-slate-500 transition-all duration-300 ${light ? '-rotate-90 scale-0 opacity-0' : 'rotate-0 scale-100 opacity-100'}`}>
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z" />
+                  </svg>
+                </span>
+              </span>
             </button>
             {inRoom && (
               <button onClick={(e) => { e.stopPropagation(); setChatOpen((o) => !o); }}
@@ -323,7 +333,7 @@ export default function RacePage() {
         </div>
       </header>
 
-      <div className={`mx-auto max-w-6xl px-4 py-6 ${chatOpen ? 'pr-4 lg:pr-[360px]' : ''}`}>
+      <div className="mx-auto max-w-6xl px-4 py-6">
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => { setMode('practice'); setJoined(false); window.history.replaceState(null, '', '/race?mode=practice'); }}
@@ -508,31 +518,31 @@ export default function RacePage() {
 
         {showTrack && (
           <>
-            <section className="relative mt-4 overflow-hidden rounded-2xl border border-white/10 bg-[#0b0e14]">
-              <WeatherCanvas weather={activeWeather.id} />
-              <div className="relative z-[6] flex items-center justify-between gap-2 border-b border-white/10 px-4 py-2.5 text-[11px] text-white/55">
+            <section className={`relative mt-4 overflow-hidden rounded-2xl border ${light ? 'border-black/10 bg-[#dfe4ec]' : 'border-white/10 bg-[#0b0e14]'}`}>
+              <WeatherCanvas weather={activeWeather.id} light={light} />
+              <div className={`relative z-[6] flex items-center justify-between gap-2 border-b px-4 py-2.5 text-[11px] ${light ? 'border-black/10 text-black/60' : 'border-white/10 text-white/55'}`}>
                 <span className="truncate font-medium">
                   {finished ? 'Race complete'
                     : mode === 'practice' ? `Solo · ${duration} min · ${car.name}` : mpTimed ? `Timed · ${roomDuration} min · Most typed wins` : `Sprint · Position P0${myPos} / 0${racers.length}`}
                 </span>
                 <span className="flex shrink-0 items-center gap-2">
-                  <span className="rounded-full border border-white/10 bg-black/40 px-2.5 py-1 text-white/70">{activeWeather.name} · {activeWeather.sub}</span>
+                  <span className={`rounded-full border px-2.5 py-1 ${light ? 'border-black/10 bg-black/[0.05] text-black/70' : 'border-white/10 bg-black/40 text-white/70'}`}>{activeWeather.name} · {activeWeather.sub}</span>
                   <span className="tabular-nums">{engine.isTimed ? `${fmt(engine.timeLeft)} · ` : ''}WPM {Math.round(wpm)} · {Math.round(engine.acc)}%</span>
                 </span>
               </div>
               {finished && lobbySecs !== null && (
-                <div className="relative z-[6] border-b border-white/10 bg-white/[0.04] px-4 py-3 text-center">
+                <div className={`relative z-[6] border-b px-4 py-3 text-center ${light ? 'border-black/10 bg-black/[0.04]' : 'border-white/10 bg-white/[0.04]'}`}>
                   <p className="text-4xl font-semibold tabular-nums">{lobbySecs}</p>
-                  <p className="text-[11px] text-white/60">Next race starts</p>
+                  <p className={`text-[11px] ${light ? 'text-black/60' : 'text-white/60'}`}>Next race starts</p>
                 </div>
               )}
               <div className="relative z-[6] space-y-2 p-3 md:p-4">
                 {racers.map((r, i) => (
-                  <RaceLane key={r.id} racer={r} pos={i + 1} racing={racing} weather={activeWeather} />
+                  <RaceLane key={r.id} racer={r} pos={i + 1} racing={racing} weather={activeWeather} light={light} />
                 ))}
               </div>
-              <div className="relative z-[6] h-1 bg-white/10">
-                <div className="h-full bg-white transition-[width]" style={{ width: `${Math.round(laneProgress * 100)}%` }} />
+              <div className={`relative z-[6] h-1 ${light ? 'bg-black/10' : 'bg-white/10'}`}>
+                <div className={`h-full transition-[width] ${light ? 'bg-black' : 'bg-white'}`} style={{ width: `${Math.round(laneProgress * 100)}%` }} />
               </div>
             </section>
 
@@ -566,7 +576,7 @@ export default function RacePage() {
                   const end = start + word.length;
                   const isCurrent = racing && charIndex >= start && charIndex < end;
                   return (
-                    <span key={start} className={isCurrent ? `underline decoration-2 underline-offset-8 ${light ? 'decoration-black/50' : 'decoration-white/60'}` : undefined}>
+                    <span key={start} className={isCurrent ? `underline decoration-2 underline-offset-8 ${light ? 'decoration-orange-600/70' : 'decoration-amber-300/70'}` : undefined}>
                       {word.split('').map((ch, k) => {
                         const i = start + k;
                         const done = i < charIndex;
@@ -574,8 +584,8 @@ export default function RacePage() {
                         const wrong = done && engine.errors[i];
                         return (
                           <span key={i} id={`tc-${i}`}>
-                            {cur && <span className={`blink -ml-[2px] inline-block h-[1.15em] w-[2px] translate-y-[4px] ${light ? 'bg-black' : 'bg-white'}`} />}
-                            <span className={wrong ? (light ? 'text-red-600' : 'text-red-400') : done ? (light ? 'text-black' : 'text-white') : (light ? 'text-black/30' : 'text-white/30')}>
+                            {cur && <span className={`blink -ml-[2px] inline-block h-[1.15em] w-[3px] translate-y-[4px] ${light ? 'bg-orange-600' : 'bg-amber-300'}`} />}
+                            <span className={wrong ? (light ? 'text-red-600' : 'text-red-400') : done ? (light ? 'font-medium text-orange-700' : 'font-medium text-amber-300') : (light ? 'text-black/60' : 'text-white/55')}>
                               {ch}
                             </span>
                           </span>

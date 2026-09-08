@@ -15,8 +15,10 @@ export interface WeatherCfg {
   name: string;
   sub: string;
   sky: string;
+  lightSky: string;
   ground: string;
   silhouette: string;
+  lightSilhouette: string;
   accent: string;
   far: 'city' | 'dunes' | 'treeline' | 'peaks';
   near: ('lamp' | 'pine' | 'rock' | 'cactus')[];
@@ -26,32 +28,40 @@ export const WEATHERS: Record<WeatherId, WeatherCfg> = {
   rain: {
     id: 'rain', name: 'Overcast', sub: 'Light rain',
     sky: 'linear-gradient(180deg,#0d1320 0%,#141c2e 60%,#1a2438 100%)',
+    lightSky: 'linear-gradient(180deg,#dde5f2 0%,#bcc9de 60%,#a9bad3 100%)',
     ground: '#0e1420',
     silhouette: '#1e2a44',
+    lightSilhouette: '#8fa2c2',
     accent: '#93a4c4',
     far: 'city', near: ['lamp', 'lamp', 'lamp', 'lamp', 'lamp', 'lamp', 'lamp', 'lamp', 'lamp', 'lamp', 'lamp', 'lamp'],
   },
   desert: {
     id: 'desert', name: 'Golden Hour', sub: 'Dry & clear',
     sky: 'linear-gradient(180deg,#16120e 0%,#221a13 60%,#2e2318 100%)',
+    lightSky: 'linear-gradient(180deg,#f4e6cf 0%,#e6cda3 60%,#d6b98d 100%)',
     ground: '#191410',
     silhouette: '#2e241a',
+    lightSilhouette: '#a98f66',
     accent: '#c9a87a',
     far: 'dunes', near: ['cactus', 'rock', 'cactus', 'rock', 'cactus', 'rock', 'cactus', 'rock', 'cactus', 'rock', 'cactus', 'rock'],
   },
   forest: {
     id: 'forest', name: 'Forest', sub: 'Cool mist',
     sky: 'linear-gradient(180deg,#0b1410 0%,#122019 60%,#182b21 100%)',
+    lightSky: 'linear-gradient(180deg,#dce9de 0%,#bcd3c1 60%,#a2c1ab 100%)',
     ground: '#0e1713',
     silhouette: '#1d3327',
+    lightSilhouette: '#7ba48e',
     accent: '#7ba48e',
     far: 'treeline', near: ['pine', 'pine', 'rock', 'pine', 'pine', 'rock', 'pine', 'pine', 'rock', 'pine', 'pine', 'rock'],
   },
   mountain: {
     id: 'mountain', name: 'Alpine', sub: 'Light snow',
     sky: 'linear-gradient(180deg,#0c1322 0%,#16213a 60%,#203252 100%)',
+    lightSky: 'linear-gradient(180deg,#dbe6f8 0%,#b7cdec 60%,#9cb8e2 100%)',
     ground: '#101827',
     silhouette: '#2a3d63',
+    lightSilhouette: '#7e97c4',
     accent: '#a9c0e8',
     far: 'peaks', near: ['pine', 'rock', 'pine', 'rock', 'pine', 'rock', 'pine', 'rock', 'pine', 'rock', 'pine', 'rock'],
   },
@@ -137,14 +147,16 @@ export type RaceLaneRacer = {
   progress: number; wpm: number; you: boolean; finished: boolean;
 };
 
-export function RaceLane({ racer, pos, racing, weather }: { racer: RaceLaneRacer; pos: number; racing: boolean; weather: WeatherCfg }) {
+export function RaceLane({ racer, pos, racing, weather, light }: { racer: RaceLaneRacer; pos: number; racing: boolean; weather: WeatherCfg; light?: boolean }) {
   const p = Math.min(1, Math.max(0, racer.progress));
   const moving = racing && !racer.finished && p > 0;
+  const sky = light ? weather.lightSky : weather.sky;
+  const silhouette = light ? weather.lightSilhouette : weather.silhouette;
 
   return (
-    <div className="relative h-[104px] overflow-hidden rounded-xl border border-white/10 bg-[#0b0e14]" style={{ background: weather.sky }}>
+    <div className={`relative h-[104px] overflow-hidden rounded-xl border ${light ? 'border-black/10' : 'border-white/10'}`} style={{ background: sky }}>
       <span className="absolute inset-x-0 top-[30px] h-[18px] bg-gradient-to-b from-transparent to-black/20" />
-      <FarLayer kind={weather.far} color={weather.silhouette} progress={p} />
+      <FarLayer kind={weather.far} color={silhouette} progress={p} />
 
       <div className="absolute inset-y-0 left-0 w-[400%]" style={{ transform: `translateX(${(-p * 75).toFixed(2)}%)`, transition: 'transform .3s linear' }}>
         {weather.near.map((kind, i) => <NearItem key={i} kind={kind} index={i} />)}
@@ -169,7 +181,7 @@ export function RaceLane({ racer, pos, racing, weather }: { racer: RaceLaneRacer
       </span>
 
       {racer.finished && (
-        <span className="absolute right-2.5 top-10 rounded-md bg-white px-2 py-0.5 text-[10px] font-semibold text-black">Finished</span>
+        <span className={`absolute right-2.5 top-10 rounded-md px-2 py-0.5 text-[10px] font-semibold ${light ? 'bg-black text-white' : 'bg-white text-black'}`}>Finished</span>
       )}
 
       <span className="absolute left-2.5 top-2.5 flex items-center gap-2">

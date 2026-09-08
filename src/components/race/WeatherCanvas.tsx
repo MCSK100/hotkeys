@@ -10,10 +10,12 @@ type Mote = { x: number; y: number; r: number; vx: number; a: number; tw: number
 const rand = (a: number, b: number) => a + Math.random() * (b - a);
 
 /** Subtle premium weather overlay — soft rain, snow, dust, mist. */
-export default function WeatherCanvas({ weather }: { weather: WeatherId }) {
+export default function WeatherCanvas({ weather, light }: { weather: WeatherId; light?: boolean }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const weatherRef = useRef(weather);
   weatherRef.current = weather;
+  const lightRef = useRef(light);
+  lightRef.current = light;
 
   useEffect(() => {
     const canvas = ref.current;
@@ -49,6 +51,7 @@ export default function WeatherCanvas({ weather }: { weather: WeatherId }) {
       if (!visible) return;
       t += 0.016;
       const k = weatherRef.current;
+      const lite = lightRef.current;
       const cw = canvas.clientWidth || w;
       const ch = canvas.clientHeight || h;
       ctx.clearRect(0, 0, cw, ch);
@@ -60,19 +63,19 @@ export default function WeatherCanvas({ weather }: { weather: WeatherId }) {
           d.y += d.vy;
           if (d.x > cw) d.x = 0;
           if (d.y > ch) { d.y = rand(-20, -5); d.x = rand(0, cw); }
-          ctx.strokeStyle = `rgba(170,190,220,${d.a.toFixed(3)})`;
+          ctx.strokeStyle = lite ? `rgba(80,100,130,${(d.a + 0.08).toFixed(3)})` : `rgba(170,190,220,${d.a.toFixed(3)})`;
           ctx.beginPath();
           ctx.moveTo((d.x * cw) / 900, (d.y * ch) / 400);
           ctx.lineTo((d.x * cw) / 900 - 1.5, ((d.y - d.l) * ch) / 400);
           ctx.stroke();
         }
       } else if (k === 'mountain') {
-        ctx.fillStyle = '#e8eefc';
+        ctx.fillStyle = lite ? '#ffffff' : '#e8eefc';
         for (const f of flakes) {
           f.y += f.vy;
           f.x += Math.sin(t + f.ph) * 0.2;
           if (f.y > 400) { f.y = -5; f.x = rand(0, 900); }
-          ctx.globalAlpha = f.a;
+          ctx.globalAlpha = lite ? Math.min(1, f.a + 0.25) : f.a;
           ctx.beginPath();
           ctx.arc((f.x * cw) / 900, (f.y * ch) / 400, f.r, 0, Math.PI * 2);
           ctx.fill();
