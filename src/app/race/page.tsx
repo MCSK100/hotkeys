@@ -33,9 +33,6 @@ function durLabel(mins: number) {
   return mins === 0 ? 'Sprint' : `${mins} min`;
 }
 
-const primaryBtn = 'rounded-xl bg-white px-5 py-2.5 text-[13px] font-semibold text-black transition hover:bg-gray-200 disabled:opacity-40';
-const ghostBtn = 'rounded-xl border border-white/15 bg-white/[0.04] px-5 py-2.5 text-[13px] font-semibold text-white/80 transition hover:border-white/40 hover:text-white disabled:opacity-40';
-
 export default function RacePage() {
   const engine = useTypingEngine();
   const [mode, setMode] = useState<Mode>('practice');
@@ -43,7 +40,8 @@ export default function RacePage() {
   const [mpDuration, setMpDuration] = useState(0);
   const [weather, setWeather] = useState<WeatherId>('rain');
   const [mpWeather, setMpWeather] = useState<WeatherId>('rain');
-  const [name, setName] = useState('HK_RACER');
+  const [name, setName] = useState('');
+  const [nameTouched, setNameTouched] = useState(false);
   const [carId, setCarId] = useState('volt');
   const [roomCode, setRoomCode] = useState<string | null>(null);
   const [inviteCode, setInviteCode] = useState<string | null>(null);
@@ -52,9 +50,10 @@ export default function RacePage() {
   const [isHost, setIsHost] = useState(false);
   const [copied, setCopied] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [light, setLight] = useState(false);
   const [history, setHistory] = useState<{ wpm: number; acc: number }[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
-  const goFired = useRef('');
+  const lastRound = useRef(0);
   const savedRef = useRef(false);
   const durationPushed = useRef('');
 
@@ -67,10 +66,12 @@ export default function RacePage() {
 
   const car = carOf(carId);
   const inRoom = mode === 'multiplayer' && joined && !!roomCode;
-  const { players, chat, sendChat, connected, lobbySecs, go, myId, hostId, roomStatus, send, startRace, setGo, roomDuration, setDuration: pushDuration, roomWeather, setWeather: pushWeather } = useRoom(roomCode, name, carId, inRoom);
+  const { players, chat, sendChat, round, connected, lobbySecs, go, myId, hostId, roomStatus, send, startRace, setGo, roomDuration, setDuration: pushDuration, roomWeather, setWeather: pushWeather } = useRoom(roomCode, name, carId, inRoom);
   const raceLive = roomStatus === 'countdown' || roomStatus === 'racing';
   const host = hostId ? myId === hostId : isHost;
   const activeWeather = WEATHERS[mode === 'practice' ? weather : isWeather(roomWeather) ? (roomWeather as WeatherId) : 'rain'];
+  const displayName = name.trim() || 'GUEST';
+  const nameValid = name.trim().length > 0;
 
   const racing = engine.phase === 'racing';
   const finished = engine.phase === 'finished';
@@ -81,6 +82,44 @@ export default function RacePage() {
   const practiceGoal = engine.durationSec > 0 ? Math.max(1, (engine.durationSec / 60) * 200) : 1;
   const practiceProgress = Math.min(1, engine.correctChars / practiceGoal);
   const laneProgress = mode === 'practice' ? practiceProgress : engine.isTimed ? engine.typed : engine.progress;
+
+  // Theme helpers — light / dark surfaces for the whole race page.
+  const primaryBtn = light
+    ? 'rounded-xl bg-black px-5 py-2.5 text-[13px] font-semibold text-white transition hover:bg-black/80 disabled:opacity-40'
+    : 'rounded-xl bg-white px-5 py-2.5 text-[13px] font-semibold text-black transition hover:bg-gray-200 disabled:opacity-40';
+  const ghostBtn = light
+    ? 'rounded-xl border border-black/15 bg-black/[0.03] px-5 py-2.5 text-[13px] font-semibold text-black/70 transition hover:border-black/40 hover:text-black disabled:opacity-40'
+    : 'rounded-xl border border-white/15 bg-white/[0.04] px-5 py-2.5 text-[13px] font-semibold text-white/80 transition hover:border-white/40 hover:text-white disabled:opacity-40';
+  const card = light ? 'border-black/10 bg-white' : 'border-white/10 bg-white/[0.02]';
+  const muted = light ? 'text-black/50' : 'text-white/50';
+  const faint = light ? 'text-black/40' : 'text-white/40';
+  const faint2 = light ? 'text-black/60' : 'text-white/60';
+  const inputCls = light
+    ? 'border-black/15 bg-black/[0.03] text-black placeholder:text-black/30 focus:border-black/50'
+    : 'border-white/15 bg-black/40 text-white placeholder:text-white/30 focus:border-white/60';
+  const pickActive = light ? 'border-black bg-black text-white' : 'border-white bg-white text-black';
+  const pickIdle = light ? 'border-black/15 text-black/60 hover:border-black/40 hover:text-black' : 'border-white/15 text-white/60 hover:border-white/40 hover:text-white';
+  const carBtn = (sel: boolean) => light
+    ? (sel ? 'border-black bg-black/[0.04]' : 'border-black/10 hover:border-black/35')
+    : (sel ? 'border-white bg-white/[0.08]' : 'border-white/10 hover:border-white/35');
+  const carName = (sel: boolean) => light
+    ? (sel ? 'text-black' : 'text-black/55')
+    : (sel ? 'text-white' : 'text-white/55');
+
+  useEffect(() => {
+    try {
+      if (localStorage.getItem('hk-race-theme') === 'light') setLight(true);
+    } catch { /* ignore */ }
+  }, []);
+
+  const toggleTheme = () => {
+    setLight((v) => {
+      try {
+        localStorage.setItem('hk-race-theme', v ? 'dark' : 'light');
+      } catch { /* ignore */ }
+      return !v;
+    });
+  };
 
   useEffect(() => {
     const q = new URLSearchParams(window.location.search);
@@ -116,10 +155,10 @@ export default function RacePage() {
     }
   }, [connected, isHost, roomCode, mpDuration, mpWeather, pushDuration, pushWeather]);
 
+  // Every race round (first + every host rematch) starts exactly once per joined player.
   useEffect(() => {
-    if (go && roomCode) {
-      if (goFired.current === roomCode) return;
-      goFired.current = roomCode;
+    if (go && roomCode && round !== lastRound.current && round > 0) {
+      lastRound.current = round;
       savedRef.current = false;
       const d = roomDuration;
       if (d > 0) startTimedRef.current(d, sharedTimedText(roomCode, d), false);
@@ -127,7 +166,7 @@ export default function RacePage() {
       setTimeout(() => inputRef.current?.focus(), 400);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [go, roomCode, roomDuration]);
+  }, [go, roomCode, roomDuration, round]);
 
   const phase = engine.phase;
   const wpm = engine.wpm;
@@ -186,9 +225,9 @@ export default function RacePage() {
 
   const racers: Racer[] = useMemo(() => {
     if (mode === 'practice') {
-      return [{ id: 'you', name: `${name} (YOU)`, carId, color: car.color, progress: laneProgress, wpm: Math.round(wpm), you: true, finished }];
+      return [{ id: 'you', name: `${displayName} (YOU)`, carId, color: car.color, progress: laneProgress, wpm: Math.round(wpm), you: true, finished }];
     }
-    const me: Racer = { id: myId, name: `${name} (YOU)`, carId, color: car.color, progress: laneProgress, wpm: Math.round(wpm), you: true, finished };
+    const me: Racer = { id: myId, name: `${displayName} (YOU)`, carId, color: car.color, progress: laneProgress, wpm: Math.round(wpm), you: true, finished };
     if (!inRoom || players.length === 0) return [me];
     const map = new Map<string, Racer>();
     map.set(myId, me);
@@ -199,7 +238,7 @@ export default function RacePage() {
     }
     return [...map.values()].sort((a, b) => b.progress - a.progress || b.wpm - a.wpm);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, name, carId, inRoom, players, myId, laneProgress, wpm, finished, car.color]);
+  }, [mode, displayName, carId, inRoom, players, myId, laneProgress, wpm, finished, car.color]);
 
   const words = useMemo(() => {
     const out: { word: string; start: number }[] = [];
@@ -220,11 +259,10 @@ export default function RacePage() {
 
   const resetRound = () => {
     setGo(false);
-    goFired.current = '';
     savedRef.current = false;
   };
   const createRoom = () => {
-    if (!name.trim()) return;
+    if (!nameValid) { setNameTouched(true); return; }
     const code = makeRoomCode();
     setRoomCode(code);
     setInviteCode(null);
@@ -236,7 +274,7 @@ export default function RacePage() {
   };
   const joinAs = (code: string) => {
     const c = code.trim().toUpperCase();
-    if (!c || !name.trim()) return;
+    if (!c || !nameValid) { setNameTouched(true); return; }
     setRoomCode(c);
     setJoined(true);
     setIsHost(false);
@@ -255,26 +293,30 @@ export default function RacePage() {
   const mpTimed = mode === 'multiplayer' && roomDuration > 0;
 
   return (
-    <main className="min-h-screen bg-[#08090c] font-body text-[#eceef1]" onClick={smartFocus}>
-      <header className="sticky top-0 z-20 border-b border-white/[0.07] bg-[#0b0e14]/90 backdrop-blur">
+    <main className={`min-h-screen font-body ${light ? 'bg-[#eef0f3] text-[#14171c]' : 'bg-[#08090c] text-[#eceef1]'}`} onClick={smartFocus}>
+      <header className={`sticky top-0 z-20 border-b backdrop-blur ${light ? 'border-black/10 bg-white/90' : 'border-white/[0.07] bg-[#0b0e14]/90'}`}>
         <div className="mx-auto flex h-[60px] max-w-6xl items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/hotkeyslogo.png" alt="HotKeys" className="h-9 w-auto object-contain" />
           </Link>
           <div className="flex items-center gap-2 text-[12px] font-medium">
+            <button onClick={toggleTheme} aria-label="Toggle light and dark theme"
+              className={`rounded-full border px-3 py-1.5 transition ${light ? 'border-black/15 text-black/70 hover:border-black/40 hover:text-black' : 'border-white/15 text-white/70 hover:border-white/40 hover:text-white'}`}>
+              {light ? 'Light' : 'Dark'}
+            </button>
             {inRoom && (
               <button onClick={(e) => { e.stopPropagation(); setChatOpen((o) => !o); }}
-                className={`rounded-full border px-3 py-1.5 transition ${chatOpen ? 'border-white bg-white text-black' : 'border-white/15 text-white/70 hover:border-white/40 hover:text-white'}`}>
+                className={`rounded-full border px-3 py-1.5 transition ${chatOpen ? (light ? 'border-black bg-black text-white' : 'border-white bg-white text-black') : (light ? 'border-black/15 text-black/70 hover:border-black/40 hover:text-black' : 'border-white/15 text-white/70 hover:border-white/40 hover:text-white')}`}>
                 Chat{chat.length > 0 ? ` · ${chat.length}` : ''}
               </button>
             )}
             <button onClick={() => setSoundOn((s) => !s)} aria-label="Toggle sound"
-              className={`rounded-full border px-3 py-1.5 ${soundOn ? 'border-white/30 text-white' : 'border-white/15 text-white/50'}`}>
+              className={`rounded-full border px-3 py-1.5 ${soundOn ? (light ? 'border-black/30 text-black' : 'border-white/30 text-white') : (light ? 'border-black/15 text-black/50' : 'border-white/15 text-white/50')}`}>
               {soundOn ? 'Sound on' : 'Muted'}
             </button>
-            {roomCode && mode === 'multiplayer' && <span className="rounded-full border border-white/15 bg-white/[0.06] px-3 py-1.5 text-white/80">Room {roomCode}</span>}
-            <span className={`rounded-full px-3 py-1.5 ${mode === 'practice' ? 'bg-white/10 text-white/70' : connected ? 'bg-emerald-500/15 text-emerald-300' : 'bg-amber-500/15 text-amber-300'}`}>
+            {roomCode && mode === 'multiplayer' && <span className={`rounded-full border px-3 py-1.5 ${light ? 'border-black/15 bg-black/[0.04] text-black/80' : 'border-white/15 bg-white/[0.06] text-white/80'}`}>Room {roomCode}</span>}
+            <span className={`rounded-full px-3 py-1.5 ${mode === 'practice' ? (light ? 'bg-black/10 text-black/70' : 'bg-white/10 text-white/70') : connected ? 'bg-emerald-500/15 text-emerald-600' : 'bg-amber-500/15 text-amber-600'}`}>
               {mode === 'practice' ? 'Solo' : connected ? `Live · ${players.length}` : 'Connecting'}
             </span>
           </div>
@@ -285,13 +327,13 @@ export default function RacePage() {
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => { setMode('practice'); setJoined(false); window.history.replaceState(null, '', '/race?mode=practice'); }}
-            className={`rounded-full px-5 py-2.5 text-[13px] font-semibold transition ${mode === 'practice' ? 'bg-white text-black' : 'bg-white/[0.06] text-white/70 hover:bg-white/10 hover:text-white'}`}
+            className={`rounded-full px-5 py-2.5 text-[13px] font-semibold transition ${mode === 'practice' ? (light ? 'bg-black text-white' : 'bg-white text-black') : (light ? 'bg-black/[0.05] text-black/70 hover:bg-black/10 hover:text-black' : 'bg-white/[0.06] text-white/70 hover:bg-white/10 hover:text-white')}`}
           >
             Solo practice
           </button>
           <button
             onClick={() => { setMode('multiplayer'); window.history.replaceState(null, '', '/race?mode=multiplayer'); }}
-            className={`rounded-full px-5 py-2.5 text-[13px] font-semibold transition ${mode === 'multiplayer' ? 'bg-white text-black' : 'bg-white/[0.06] text-white/70 hover:bg-white/10 hover:text-white'}`}
+            className={`rounded-full px-5 py-2.5 text-[13px] font-semibold transition ${mode === 'multiplayer' ? (light ? 'bg-black text-white' : 'bg-white text-black') : (light ? 'bg-black/[0.05] text-black/70 hover:bg-black/10 hover:text-black' : 'bg-white/[0.06] text-white/70 hover:bg-white/10 hover:text-white')}`}
           >
             Multiplayer
           </button>
@@ -299,31 +341,31 @@ export default function RacePage() {
             <span className="ml-auto flex flex-wrap items-center gap-1.5">
               {[3, 5, 10].map((mins) => (
                 <button key={mins} onClick={() => setDuration(mins)}
-                  className={`rounded-full border px-3.5 py-2 text-[12px] font-medium transition ${duration === mins ? 'border-white bg-white text-black' : 'border-white/15 text-white/60 hover:border-white/40 hover:text-white'}`}>
+                  className={`rounded-full border px-3.5 py-2 text-[12px] font-medium transition ${duration === mins ? pickActive : pickIdle}`}>
                   {mins} min
                 </button>
               ))}
-              <WeatherPicker small value={weather} onChange={setWeather} />
+              <WeatherPicker small light={light} value={weather} onChange={setWeather} />
             </span>
           )}
         </div>
 
         {mode === 'practice' && (
-          <section className="mt-4 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+          <section className={`mt-4 rounded-2xl border p-4 ${card}`}>
             <div className="flex flex-wrap items-center gap-4">
               <label className="flex items-center gap-2">
-                <span className="text-[11px] font-medium text-white/50">Driver</span>
+                <span className={`text-[11px] font-medium ${muted}`}>Driver</span>
                 <input value={name} data-name="1" maxLength={14} onChange={(e) => setName(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, ''))}
-                  placeholder="HK_RACER" aria-label="Racer name"
-                  className="w-36 rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-[12px] font-medium outline-none focus:border-white/60" />
+                  placeholder="YOUR NAME" aria-label="Racer name"
+                  className={`w-36 rounded-lg border px-3 py-2 text-[12px] font-medium outline-none ${inputCls}`} />
               </label>
               <div className="flex flex-1 flex-wrap items-center gap-2">
-                <span className="text-[11px] font-medium text-white/50">Garage</span>
+                <span className={`text-[11px] font-medium ${muted}`}>Garage</span>
                 {CARS.map((c) => (
                   <button key={c.id} onClick={() => setCarId(c.id)} title={c.name} aria-label={c.name}
-                    className={`rounded-xl border px-2 py-1.5 transition ${carId === c.id ? 'border-white bg-white/[0.08]' : 'border-white/10 hover:border-white/35'}`}>
+                    className={`rounded-xl border px-2 py-1.5 transition ${carBtn(carId === c.id)}`}>
                     <Car3D color={c.color} size="sm" />
-                    <span className={`mt-1 block text-center text-[10px] font-semibold ${carId === c.id ? 'text-white' : 'text-white/55'}`}>{c.name}</span>
+                    <span className={`mt-1 block text-center text-[10px] font-semibold ${carName(carId === c.id)}`}>{c.name}</span>
                   </button>
                 ))}
               </div>
@@ -332,61 +374,65 @@ export default function RacePage() {
         )}
 
         {showSetup && (
-          <section className="mt-4 rounded-2xl border border-white/10 bg-white/[0.02] p-5">
+          <section className={`mt-4 rounded-2xl border p-5 ${card}`}>
             {inviteCode && (
-              <p className="mb-4 rounded-xl border border-white/15 bg-white/[0.05] px-4 py-3 text-[12px] text-white/80">
+              <p className={`mb-4 rounded-xl border px-4 py-3 text-[12px] ${light ? 'border-black/15 bg-black/[0.03] text-black/80' : 'border-white/15 bg-white/[0.05] text-white/80'}`}>
                 Invited to room {inviteCode}{mpDuration > 0 ? ` · ${mpDuration} min timed` : ' · Sprint'} — set your name, pick a car, hit Join.
               </p>
             )}
-            <p className="text-[11px] font-medium text-white/50">1 · Driver name</p>
-            <input value={name} data-name="1" maxLength={14} onChange={(e) => setName(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, ''))}
-              placeholder="YOUR NAME" aria-label="Racer name"
-              className="mt-2 w-52 rounded-xl border border-white/15 bg-black/40 px-3 py-2.5 text-sm outline-none focus:border-white/60" />
-            <p className="mt-5 text-[11px] font-medium text-white/50">2 · Choose your car</p>
+            <p className={`text-[11px] font-medium ${muted}`}>1 · Driver name</p>
+            <input value={name} data-name="1" maxLength={14}
+              onChange={(e) => { setName(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '')); setNameTouched(true); }}
+              placeholder="Enter your name to race" aria-label="Racer name"
+              className={`mt-2 w-52 rounded-xl border px-3 py-2.5 text-sm outline-none ${inputCls} ${nameTouched && !nameValid ? (light ? '!border-red-500' : '!border-red-400') : ''}`} />
+            {nameTouched && !nameValid && (
+              <p className="mt-1.5 text-[12px] font-medium text-red-500">Please enter your name to join the race.</p>
+            )}
+            <p className={`mt-5 text-[11px] font-medium ${muted}`}>2 · Choose your car</p>
             <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-6">
               {CARS.map((c) => (
                 <button key={c.id} onClick={() => setCarId(c.id)}
-                  className={`rounded-xl border p-2 text-left transition ${carId === c.id ? 'border-white bg-white/[0.07]' : 'border-white/10 hover:border-white/30'}`}>
+                  className={`rounded-xl border p-2 text-left transition ${carBtn(carId === c.id)}`}>
                   <Car3D color={c.color} size="sm" />
-                  <span className={`mt-1.5 block text-[11px] font-semibold ${carId === c.id ? 'text-white' : 'text-white/70'}`}>{c.name}</span>
+                  <span className={`mt-1.5 block text-[11px] font-semibold ${light ? (carId === c.id ? 'text-black' : 'text-black/70') : (carId === c.id ? 'text-white' : 'text-white/70')}`}>{c.name}</span>
                 </button>
               ))}
             </div>
             {inviteCode ? (
-              <div className="mt-5 rounded-xl border border-white/10 bg-black/40 px-4 py-3">
-                <p className="text-[11px] font-medium text-white/50">Host settings · locked</p>
-                <p className="mt-2 text-[12px] text-white/80">Mode · {durLabel(mpDuration)} · {(WEATHERS[mpWeather]).name}</p>
+              <div className={`mt-5 rounded-xl border px-4 py-3 ${light ? 'border-black/10 bg-black/[0.03]' : 'border-white/10 bg-black/40'}`}>
+                <p className={`text-[11px] font-medium ${muted}`}>Host settings · locked</p>
+                <p className={`mt-2 text-[12px] ${light ? 'text-black/80' : 'text-white/80'}`}>Mode · {durLabel(mpDuration)} · {(WEATHERS[mpWeather]).name}</p>
               </div>
             ) : (
               <>
-                <p className="mt-5 text-[11px] font-medium text-white/50">3 · Race length</p>
+                <p className={`mt-5 text-[11px] font-medium ${muted}`}>3 · Race length</p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {DURATIONS.map((mins) => (
                     <button key={mins} onClick={() => setMpDuration(mins)}
-                      className={`rounded-full border px-4 py-2 text-[12px] font-medium transition ${mpDuration === mins ? 'border-white bg-white text-black' : 'border-white/15 text-white/60 hover:border-white/40 hover:text-white'}`}>
+                      className={`rounded-full border px-4 py-2 text-[12px] font-medium transition ${mpDuration === mins ? pickActive : pickIdle}`}>
                       {durLabel(mins)}
                     </button>
                   ))}
                 </div>
-                <p className="mt-5 text-[11px] font-medium text-white/50">4 · Track weather</p>
+                <p className={`mt-5 text-[11px] font-medium ${muted}`}>4 · Track weather</p>
                 <div className="mt-2">
-                  <WeatherPicker value={mpWeather} onChange={setMpWeather} />
+                  <WeatherPicker light={light} value={mpWeather} onChange={setMpWeather} />
                 </div>
               </>
             )}
-            <p className="mt-5 text-[11px] font-medium text-white/50">{inviteCode ? '3 · Enter the grid' : '5 · Enter the grid'}</p>
+            <p className={`mt-5 text-[11px] font-medium ${muted}`}>{inviteCode ? '3 · Enter the grid' : '5 · Enter the grid'}</p>
             <div className="mt-2 flex flex-wrap items-center gap-2">
               {inviteCode ? (
-                <button onClick={() => joinAs(inviteCode)} disabled={!name.trim()} className={primaryBtn}>
+                <button onClick={() => joinAs(inviteCode)} disabled={!nameValid} title={!nameValid ? 'Enter your name first' : undefined} className={primaryBtn}>
                   Join grid {inviteCode} →
                 </button>
               ) : (
                 <>
-                  <button onClick={createRoom} disabled={!name.trim()} className={primaryBtn}>Create room →</button>
-                  <span className="text-[11px] text-white/40">or</span>
+                  <button onClick={createRoom} disabled={!nameValid} title={!nameValid ? 'Enter your name first' : undefined} className={primaryBtn}>Create room →</button>
+                  <span className={`text-[11px] ${faint}`}>or</span>
                   <input value={joinCode} data-room="1" onChange={(e) => setJoinCode(e.target.value.toUpperCase())} placeholder="CODE" aria-label="Room code"
-                    className="w-28 rounded-xl border border-white/15 bg-black/40 px-3 py-2 text-sm outline-none focus:border-white/60" />
-                  <button onClick={() => joinAs(joinCode)} disabled={!name.trim() || !joinCode.trim()} className={ghostBtn}>Join →</button>
+                    className={`w-28 rounded-xl border px-3 py-2 text-sm outline-none ${inputCls}`} />
+                  <button onClick={() => joinAs(joinCode)} disabled={!nameValid || !joinCode.trim()} title={!nameValid ? 'Enter your name first' : undefined} className={ghostBtn}>Join →</button>
                 </>
               )}
             </div>
@@ -394,10 +440,10 @@ export default function RacePage() {
         )}
 
         {showLobby && (
-          <section className="mt-4 rounded-2xl border border-white/10 bg-[#0b0e14] p-5">
+          <section className={`mt-4 rounded-2xl border p-5 ${light ? 'border-black/10 bg-white' : 'border-white/10 bg-[#0b0e14]'}`}>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className="text-[11px] font-medium text-white/50">Lobby · Room {roomCode} · {durLabel(roomDuration)}</p>
+                <p className={`text-[11px] font-medium ${muted}`}>Lobby · Room {roomCode} · {durLabel(roomDuration)}</p>
                 <p className="mt-1 text-3xl font-semibold tracking-tight">Waiting for racers</p>
               </div>
               <div className="flex gap-2">
@@ -408,51 +454,51 @@ export default function RacePage() {
                   className={ghostBtn}>{copied ? 'Link copied ✓' : 'Copy invite link'}</button>
               </div>
             </div>
-            <p className="mt-2 break-all text-[11px] text-white/50">{inviteLink}</p>
+            <p className={`mt-2 break-all text-[11px] ${muted}`}>{inviteLink}</p>
             {host && lobbySecs === null && (
               <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
                 <span className="flex items-center gap-1.5">
-                  <span className="mr-1 text-[11px] text-white/50">Race length</span>
+                  <span className={`mr-1 text-[11px] ${muted}`}>Race length</span>
                   {DURATIONS.map((mins) => (
                     <button key={mins} onClick={() => pushDuration(mins)}
-                      className={`rounded-full border px-3 py-1.5 text-[11px] font-medium transition ${roomDuration === mins ? 'border-white bg-white text-black' : 'border-white/15 text-white/60 hover:border-white/40 hover:text-white'}`}>
+                      className={`rounded-full border px-3 py-1.5 text-[11px] font-medium transition ${roomDuration === mins ? pickActive : pickIdle}`}>
                       {durLabel(mins)}
                     </button>
                   ))}
                 </span>
-                <WeatherPicker small value={isWeather(roomWeather) ? (roomWeather as WeatherId) : 'rain'} onChange={pushWeather} />
+                <WeatherPicker small light={light} value={isWeather(roomWeather) ? (roomWeather as WeatherId) : 'rain'} onChange={pushWeather} />
               </div>
             )}
             <div className="mt-4 grid gap-2 sm:grid-cols-2">
               {players.length === 0 && (
-                <p className="text-[12px] text-white/50">
+                <p className={`text-[12px] ${muted}`}>
                   {connected ? 'Connecting… drivers appear here.' : 'Server offline — start it with `npm run server`, then rejoin.'}
                 </p>
               )}
               {players.map((p) => (
-                <div key={p.id} className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/40 px-3 py-2">
+                <div key={p.id} className={`flex items-center gap-3 rounded-xl border px-3 py-2 ${light ? 'border-black/10 bg-black/[0.03]' : 'border-white/10 bg-black/40'}`}>
                   <Car3D color={carOf(p.id === myId ? carId : p.car).color} size="sm" />
-                  <span className="text-sm font-semibold">{p.id === myId ? `${name} (YOU)` : p.name}</span>
+                  <span className="text-sm font-semibold">{p.id === myId ? `${displayName} (YOU)` : p.name}</span>
                   {(hostId ? p.id === hostId : (p.id === myId && isHost)) && (
-                    <span className="rounded-md bg-white px-1.5 py-0.5 text-[10px] font-bold text-black">HOST</span>
+                    <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold ${light ? 'bg-black text-white' : 'bg-white text-black'}`}>HOST</span>
                   )}
-                  <span className="ml-auto text-[10px] font-medium text-emerald-300">Ready</span>
+                  <span className="ml-auto text-[10px] font-medium text-emerald-600">Ready</span>
                 </div>
               ))}
             </div>
             {lobbySecs !== null ? (
-              <div className="mt-5 rounded-xl border border-white/15 bg-white/[0.04] px-4 py-4 text-center">
+              <div className={`mt-5 rounded-xl border px-4 py-4 text-center ${light ? 'border-black/15 bg-black/[0.03]' : 'border-white/15 bg-white/[0.04]'}`}>
                 <p className="text-6xl font-semibold tabular-nums">{lobbySecs}</p>
-                <p className="text-[11px] text-white/60">Race starts — get ready to type</p>
+                <p className={`text-[11px] ${faint2}`}>Race starts — get ready to type</p>
               </div>
             ) : (
               <div className="mt-5 flex flex-wrap items-center gap-3">
                 {raceLive ? (
-                  <span className="rounded-xl border border-white/15 bg-white/[0.05] px-4 py-3 text-[12px] text-white/70">Race in progress — you join the next round</span>
+                  <span className={`rounded-xl border px-4 py-3 text-[12px] ${light ? 'border-black/15 bg-black/[0.03] text-black/70' : 'border-white/15 bg-white/[0.05] text-white/70'}`}>Race in progress — you join the next round</span>
                 ) : host ? (
                   <button onClick={startRace} className={primaryBtn}>Start race · 15s countdown →</button>
                 ) : (
-                  <span className="rounded-xl border border-white/15 bg-white/[0.04] px-4 py-3 text-[12px] text-white/60">Waiting for host to start…</span>
+                  <span className={`rounded-xl border px-4 py-3 text-[12px] ${light ? 'border-black/15 bg-black/[0.03] text-black/60' : 'border-white/15 bg-white/[0.04] text-white/60'}`}>Waiting for host to start…</span>
                 )}
                 <button onClick={() => { setJoined(false); setGo(false); }} className={ghostBtn}>Leave</button>
               </div>
@@ -490,27 +536,27 @@ export default function RacePage() {
               </div>
             </section>
 
-            <section className="relative mt-4 rounded-2xl border border-white/10 bg-black/50 p-5 md:p-7" onClick={smartFocus}>
+            <section className={`relative mt-4 rounded-2xl border p-5 md:p-7 ${light ? 'border-black/10 bg-white' : 'border-white/10 bg-black/50'}`} onClick={smartFocus}>
               {engine.phase === 'countdown' && (
-                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl bg-black/70 backdrop-blur-[2px]">
+                <div className={`absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl backdrop-blur-[2px] ${light ? 'bg-white/80' : 'bg-black/70'}`}>
                   <p className="text-7xl font-semibold tabular-nums">{engine.countdown > 0 ? engine.countdown : 'GO'}</p>
-                  <p className="text-[11px] text-white/60">Get ready</p>
+                  <p className={`text-[11px] ${faint2}`}>Get ready</p>
                 </div>
               )}
               {engine.phase === 'lobby' && (
-                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-2xl bg-black/70 p-4 text-center">
+                <div className={`absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-2xl p-4 text-center ${light ? 'bg-white/85' : 'bg-black/70'}`}>
                   {mode === 'practice' ? (
                     <button onClick={() => { savedRef.current = false; engine.startTimed(duration); setTimeout(focus, 350); }} className={primaryBtn}>
                       {`Start ${duration} min sprint →`}
                     </button>
                   ) : (
-                    <p className="text-[12px] text-white/60">Waiting for host to start…</p>
+                    <p className={`text-[12px] ${faint2}`}>Waiting for host to start…</p>
                   )}
-                  <p className="text-[11px] text-white/50">Click to focus · then type</p>
+                  <p className={`text-[11px] ${muted}`}>Click to focus · then type</p>
                 </div>
               )}
               <div className="mb-3 flex items-center justify-between gap-3">
-                <p className="text-[11px] text-white/45">
+                <p className={`text-[11px] ${light ? 'text-black/45' : 'text-white/45'}`}>
                   {mode === 'practice' ? `Type for ${duration} minutes — car moves only with clean keys` : mpTimed ? `Type for ${roomDuration} minutes — most typed wins` : 'Type this passage — same for all racers'}
                 </p>
                 {engine.isTimed && <p className="shrink-0 text-sm font-semibold tabular-nums">{fmt(engine.timeLeft)}</p>}
@@ -520,7 +566,7 @@ export default function RacePage() {
                   const end = start + word.length;
                   const isCurrent = racing && charIndex >= start && charIndex < end;
                   return (
-                    <span key={start} className={isCurrent ? 'underline decoration-white/60 decoration-2 underline-offset-8' : undefined}>
+                    <span key={start} className={isCurrent ? `underline decoration-2 underline-offset-8 ${light ? 'decoration-black/50' : 'decoration-white/60'}` : undefined}>
                       {word.split('').map((ch, k) => {
                         const i = start + k;
                         const done = i < charIndex;
@@ -528,8 +574,8 @@ export default function RacePage() {
                         const wrong = done && engine.errors[i];
                         return (
                           <span key={i} id={`tc-${i}`}>
-                            {cur && <span className="blink -ml-[2px] inline-block h-[1.15em] w-[2px] translate-y-[4px] bg-white" />}
-                            <span className={wrong ? 'text-red-400' : done ? 'text-white' : 'text-white/30'}>
+                            {cur && <span className={`blink -ml-[2px] inline-block h-[1.15em] w-[2px] translate-y-[4px] ${light ? 'bg-black' : 'bg-white'}`} />}
+                            <span className={wrong ? (light ? 'text-red-600' : 'text-red-400') : done ? (light ? 'text-black' : 'text-white') : (light ? 'text-black/30' : 'text-white/30')}>
                               {ch}
                             </span>
                           </span>
@@ -551,8 +597,8 @@ export default function RacePage() {
               />
               <div className="mt-5 grid grid-cols-4 gap-2">
                 {[['WPM', String(Math.round(wpm))], ['ACC', `${Math.round(engine.acc)}%`], [mode === 'practice' ? 'TIME' : 'POS', mode === 'practice' ? fmt(engine.timeLeft) : `P0${myPos}`], [mode === 'practice' ? 'GOAL' : 'DONE', `${Math.round(laneProgress * 100)}%`]].map(([k, v]) => (
-                  <div key={k} className="rounded-xl bg-white/[0.04] px-3 py-2.5 text-center">
-                    <p className="text-[10px] font-medium text-white/45">{k}</p>
+                  <div key={k} className={`rounded-xl px-3 py-2.5 text-center ${light ? 'bg-black/[0.04]' : 'bg-white/[0.04]'}`}>
+                    <p className={`text-[10px] font-medium ${light ? 'text-black/45' : 'text-white/45'}`}>{k}</p>
                     <p className="text-lg font-semibold tabular-nums">{v}</p>
                   </div>
                 ))}
@@ -560,19 +606,21 @@ export default function RacePage() {
             </section>
 
             {finished && (
-              <section className="mt-4 rounded-2xl border border-white/15 bg-white/[0.03] p-5">
+              <section className={`mt-4 rounded-2xl border p-5 ${light ? 'border-black/15 bg-white' : 'border-white/15 bg-white/[0.03]'}`}>
                 <div className="flex flex-wrap items-end justify-between gap-3">
                   <div>
-                    <p className="text-[11px] font-medium text-white/50">
+                    <p className={`text-[11px] font-medium ${muted}`}>
                       {mode === 'practice' ? `${duration} min sprint — complete` : mpTimed ? `${roomDuration} min timed — complete · P0${myPos}` : `Results — P0${myPos} finish`}
                     </p>
-                    <p className="mt-1 text-4xl font-semibold tracking-tight">WPM {Math.round(wpm)} <span className="text-xl font-normal text-white/50">· {Math.round(engine.acc)}% acc</span></p>
+                    <p className="mt-1 text-4xl font-semibold tracking-tight">WPM {Math.round(wpm)} <span className={`text-xl font-normal ${light ? 'text-black/50' : 'text-white/50'}`}>· {Math.round(engine.acc)}% acc</span></p>
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     {mode === 'practice' ? (
                       <button onClick={() => { savedRef.current = false; engine.startTimed(duration); setTimeout(focus, 350); }} className={primaryBtn}>Race again →</button>
-                    ) : (
+                    ) : host ? (
                       <button onClick={rematch} className={primaryBtn}>Rematch · 15s →</button>
+                    ) : (
+                      <span className={`rounded-xl border px-4 py-2.5 text-[12px] ${light ? 'border-black/15 bg-black/[0.03] text-black/60' : 'border-white/15 bg-white/[0.04] text-white/60'}`}>Waiting for host rematch…</span>
                     )}
                     <Link href="/" className={ghostBtn}>Home</Link>
                   </div>
@@ -580,10 +628,10 @@ export default function RacePage() {
                 {mode === 'multiplayer' && (
                   <div className="mt-4 overflow-x-auto">
                     <table className="w-full text-[12px]">
-                      <thead><tr className="text-left text-white/45"><th className="py-2 pr-4 font-medium">POS</th><th className="py-2 pr-4 font-medium">RACER</th><th className="py-2 pr-4 font-medium">WPM</th><th className="py-2 font-medium">PROGRESS</th></tr></thead>
+                      <thead><tr className={`text-left ${light ? 'text-black/45' : 'text-white/45'}`}><th className="py-2 pr-4 font-medium">POS</th><th className="py-2 pr-4 font-medium">RACER</th><th className="py-2 pr-4 font-medium">WPM</th><th className="py-2 font-medium">PROGRESS</th></tr></thead>
                       <tbody>
                         {racers.map((r, i) => (
-                          <tr key={r.id} className="border-t border-white/10">
+                          <tr key={r.id} className={`border-t ${light ? 'border-black/10' : 'border-white/10'}`}>
                             <td className="py-2 pr-4 tabular-nums">0{i + 1}</td>
                             <td className="py-2 pr-4">{r.name}</td>
                             <td className="py-2 pr-4 tabular-nums">{r.wpm}</td>
@@ -600,8 +648,8 @@ export default function RacePage() {
             {mode === 'practice' && (
               <section className="mt-4 grid gap-3 pb-10 sm:grid-cols-3">
                 {[['Avg wpm', String(avg)], ['Best wpm', String(best)], ['Races', String(history.length)]].map(([k, v]) => (
-                  <div key={k} className="rounded-2xl border border-white/10 bg-white/[0.02] px-4 py-3">
-                    <p className="text-[10px] font-medium text-white/45">{k}</p>
+                  <div key={k} className={`rounded-2xl border px-4 py-3 ${card}`}>
+                    <p className={`text-[10px] font-medium ${light ? 'text-black/45' : 'text-white/45'}`}>{k}</p>
                     <p className="text-3xl font-semibold tracking-tight">{v}</p>
                   </div>
                 ))}
@@ -612,11 +660,11 @@ export default function RacePage() {
       </div>
 
       {inRoom && (
-        <RoomChat open={chatOpen} onClose={() => setChatOpen(false)} messages={chat} myName={name} onSend={sendChat} />
+        <RoomChat light={light} open={chatOpen} onClose={() => setChatOpen(false)} messages={chat} myName={displayName} onSend={sendChat} />
       )}
       {inRoom && !chatOpen && chat.length > 0 && (
         <button onClick={() => setChatOpen(true)}
-          className="fixed bottom-5 right-5 z-30 rounded-full bg-white px-4 py-2.5 text-[13px] font-semibold text-black shadow-xl hover:bg-gray-200">
+          className={`fixed bottom-5 right-5 z-30 rounded-full px-4 py-2.5 text-[13px] font-semibold shadow-xl ${light ? 'bg-black text-white hover:bg-black/80' : 'bg-white text-black hover:bg-gray-200'}`}>
           Chat · {chat.length}
         </button>
       )}

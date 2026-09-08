@@ -20,7 +20,7 @@ async function fetchGifs(query: string): Promise<GifItem[]> {
   })).filter((g) => g.url);
 }
 
-export default function GifPicker({ onPick }: { onPick: (url: string) => void }) {
+export default function GifPicker({ onPick, light }: { onPick: (url: string) => void; light?: boolean }) {
   const [query, setQuery] = useState('');
   const [gifs, setGifs] = useState<GifItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -52,25 +52,25 @@ export default function GifPicker({ onPick }: { onPick: (url: string) => void })
 
   if (!TENOR_KEY) {
     return (
-      <p className="border-t border-white/10 px-4 py-3 text-[11px] leading-5 text-white/50">
-        GIF search needs a free Tenor API key — add <span className="text-white/80">NEXT_PUBLIC_TENOR_API_KEY</span> to your env and restart.
+      <p className={`border-t px-4 py-3 text-[11px] leading-5 ${light ? 'border-black/10 text-black/50' : 'border-white/10 text-white/50'}`}>
+        GIF search needs a free Tenor API key — add <span className={light ? 'text-black/80' : 'text-white/80'}>NEXT_PUBLIC_TENOR_API_KEY</span> to your env and restart.
         Until then, paste any GIF / image link and it plays inline.
       </p>
     );
   }
 
   return (
-    <div className="border-t border-white/10 px-3 py-2">
+    <div className={`border-t px-3 py-2 ${light ? 'border-black/10' : 'border-white/10'}`}>
       <input
         value={query} data-chat="1" onChange={(e) => onSearch(e.target.value)}
         onKeyDown={(e) => e.stopPropagation()} onKeyUp={(e) => e.stopPropagation()}
         placeholder="Search GIFs…"
-        className="mb-2 w-full rounded-lg border border-white/15 bg-black/40 px-3 py-1.5 text-[12px] text-white outline-none placeholder:text-white/30 focus:border-white/50"
+        className={`mb-2 w-full rounded-lg border px-3 py-1.5 text-[12px] outline-none ${light ? 'border-black/15 bg-black/[0.03] text-black placeholder:text-black/30 focus:border-black/50' : 'border-white/15 bg-black/40 text-white placeholder:text-white/30 focus:border-white/50'}`}
       />
       {loading && gifs.length === 0 ? (
-        <p className="py-3 text-center text-[11px] text-white/40">Loading GIFs…</p>
+        <p className={`py-3 text-center text-[11px] ${light ? 'text-black/40' : 'text-white/40'}`}>Loading GIFs…</p>
       ) : error ? (
-        <p className="py-3 text-center text-[11px] text-white/40">Couldn&apos;t load GIFs. Try again.</p>
+        <p className={`py-3 text-center text-[11px] ${light ? 'text-black/40' : 'text-white/40'}`}>Couldn&apos;t load GIFs. Try again.</p>
       ) : (
         <div className="grid max-h-44 grid-cols-3 gap-1.5 overflow-y-auto">
           {gifs.map((g) => (
@@ -80,7 +80,7 @@ export default function GifPicker({ onPick }: { onPick: (url: string) => void })
             </button>
           ))}
           {gifs.length === 0 && !loading && (
-            <p className="col-span-3 py-3 text-center text-[11px] text-white/40">No GIFs found.</p>
+            <p className={`col-span-3 py-3 text-center text-[11px] ${light ? 'text-black/40' : 'text-white/40'}`}>No GIFs found.</p>
           )}
         </div>
       )}

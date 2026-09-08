@@ -9,14 +9,14 @@ type Player = { id: string; name: string; car: string; progress: Prog; socket: W
 const WEATHERS = ['rain', 'desert', 'forest', 'mountain'];
 
 type ChatMsg = { id: string; name: string; text: string; ts: number };
-type Room = { code: string; players: Map<string, Player>; status: string; timer: NodeJS.Timeout | null; lobbyN: number | null; durationMin: number; weather: string; hostId: string | null; chat: ChatMsg[] };
+type Room = { code: string; players: Map<string, Player>; status: string; timer: NodeJS.Timeout | null; lobbyN: number | null; durationMin: number; weather: string; hostId: string | null; chat: ChatMsg[]; round: number };
 
 const rooms = new Map<string, Room>();
 
 function getRoom(code: string): Room {
   let r = rooms.get(code);
   if (!r) {
-    r = { code, players: new Map(), status: 'lobby', timer: null, lobbyN: null, durationMin: 0, weather: 'rain', hostId: null, chat: [] };
+    r = { code, players: new Map(), status: 'lobby', timer: null, lobbyN: null, durationMin: 0, weather: 'rain', hostId: null, chat: [], round: 0 };
     rooms.set(code, r);
   }
   return r;
@@ -62,7 +62,8 @@ function startLobbyCountdown(room: Room) {
       for (const p of room.players.values()) {
         p.progress = { progressPercent: 0, currentWpm: 0 };
       }
-      broadcast(room, { type: 'RACE_START', startTime: Date.now(), duration: room.durationMin, weather: room.weather });
+      room.round += 1;
+      broadcast(room, { type: 'RACE_START', startTime: Date.now(), duration: room.durationMin, weather: room.weather, round: room.round });
       broadcast(room, { type: 'ROOM_STATE', room: snapshot(room) });
     } else {
       broadcast(room, { type: 'LOBBY_COUNTDOWN', value: room.lobbyN });

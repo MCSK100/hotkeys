@@ -10,6 +10,7 @@ export type ChatMsg = { id: string; name: string; text: string; ts: number };
 export function useRoom(roomCode: string | null, name: string, car: string, enabled: boolean) {
   const [players, setPlayers] = useState<NetPlayer[]>([]);
   const [chat, setChat] = useState<ChatMsg[]>([]);
+  const [round, setRound] = useState(0);
   const [connected, setConnected] = useState(false);
   const [lobbySecs, setLobbySecs] = useState<number | null>(null);
   const [go, setGo] = useState(false);
@@ -29,6 +30,7 @@ export function useRoom(roomCode: string | null, name: string, car: string, enab
     setLobbySecs(null);
     setPlayers([]);
     setChat([]);
+    setRound(0);
     setRoomDuration(0);
     setRoomWeather('rain');
     setHostId(null);
@@ -101,6 +103,7 @@ export function useRoom(roomCode: string | null, name: string, car: string, enab
         }
         if (msg.type === 'RACE_START') {
           setLobbySecs(null);
+          setRound(typeof msg.round === 'number' ? msg.round : Date.now());
           setGo(true);
         }
         if (msg.type === 'RACE_END') setPlayers((prev) => [...prev]);
@@ -165,5 +168,5 @@ export function useRoom(roomCode: string | null, name: string, car: string, enab
     ws.send(JSON.stringify({ type: 'CHAT', payload: { text: clean, name: identityRef.current.name } }));
   }, []);
 
-  return { players, chat, sendChat, connected, lobbySecs, go, myId: idRef.current, hostId, roomStatus, send, startRace, setGo, roomDuration, setDuration, roomWeather, setWeather };
+  return { players, chat, sendChat, round, connected, lobbySecs, go, myId: idRef.current, hostId, roomStatus, send, startRace, setGo, roomDuration, setDuration, roomWeather, setWeather };
 }
