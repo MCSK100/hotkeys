@@ -4,6 +4,13 @@ import { useEffect, useRef, useState } from 'react';
 import type { ChatMsg } from '@/hooks/useWebSocketSync';
 import GifPicker from './GifPicker';
 
+const EMOJIS = ['😀', '😂', '🔥', '🏎️', '💨', '👏', '😅', '🤝', '⚡', '🏁', '💪', '😎', '🎉', '👀', '💯', '🙌'];
+
+function isImageUrl(text: string) {
+  const t = text.trim();
+  return /^https?:\/\/\S+\.(gif|png|jpg|jpeg|webp)(\?\S*)?$/i.test(t) || /^https?:\/\/(media\.giphy\.com|media\.tenor\.com|i\.imgur\.com)\/\S+$/i.test(t);
+}
+
 export default function RoomChat({
   open, onClose, messages, myName, onSend, light,
 }: {

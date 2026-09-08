@@ -19,7 +19,10 @@ export function randomQuote(exclude?: string) {
 export function buildLongText(minutes: number, seed = ''): string {
   let h = 0;
   for (const c of seed.toUpperCase()) h = (h * 31 + c.charCodeAt(0)) % 997;
-  const targetWords = Math.max(80, minutes * 70);
+  // Minimum-word paragraphs: short races get a short passage.
+  // Solo auto-extends if you out-type it; multiplayer full-text finish counts as a win.
+  const CAPS: Record<number, number> = { 3: 120, 5: 180 };
+  const targetWords = CAPS[minutes] ?? Math.max(80, minutes * 70);
   const parts: string[] = [];
   let words = 0;
   let i = h % QUOTES.length;
