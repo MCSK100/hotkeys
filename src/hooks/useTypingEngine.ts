@@ -100,6 +100,13 @@ export function useTypingEngine() {
     if (phase !== 'racing') return false;
     if (key === 'Backspace') {
       if (charIndex === 0) return false;
+      const del = charIndex - 1;
+      setErrors((prev) => {
+        if (!prev[del]) return prev;
+        const next = [...prev];
+        next[del] = false;
+        return next;
+      });
       setCharIndex((i) => i - 1);
       return true;
     }

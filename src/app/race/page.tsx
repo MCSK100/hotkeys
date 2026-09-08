@@ -223,6 +223,14 @@ export default function RacePage() {
     document.getElementById(`tc-${charIndex}`)?.scrollIntoView({ block: 'nearest' });
   }, [charIndex, racing]);
 
+  // Typing starts → focus lands straight in the typing box (never steals chat/name inputs).
+  useEffect(() => {
+    if (phase !== 'countdown' && phase !== 'racing') return;
+    const ae = document.activeElement as HTMLElement | null;
+    if (ae && (ae.dataset.chat === '1' || ae.dataset.name === '1' || ae.dataset.room === '1')) return;
+    inputRef.current?.focus();
+  }, [phase]);
+
   const racers: Racer[] = useMemo(() => {
     if (mode === 'practice') {
       return [{ id: 'you', name: `${displayName} (YOU)`, carId, color: car.color, progress: laneProgress, wpm: Math.round(wpm), you: true, finished }];
@@ -576,7 +584,7 @@ export default function RacePage() {
                   const end = start + word.length;
                   const isCurrent = racing && charIndex >= start && charIndex < end;
                   return (
-                    <span key={start} className={isCurrent ? `underline decoration-2 underline-offset-8 ${light ? 'decoration-orange-600/70' : 'decoration-amber-300/70'}` : undefined}>
+                    <span key={start} className={isCurrent ? `underline decoration-2 underline-offset-8 ${light ? 'decoration-black/35' : 'decoration-white/40'}` : undefined}>
                       {word.split('').map((ch, k) => {
                         const i = start + k;
                         const done = i < charIndex;
@@ -584,8 +592,8 @@ export default function RacePage() {
                         const wrong = done && engine.errors[i];
                         return (
                           <span key={i} id={`tc-${i}`}>
-                            {cur && <span className={`blink -ml-[2px] inline-block h-[1.15em] w-[3px] translate-y-[4px] ${light ? 'bg-orange-600' : 'bg-amber-300'}`} />}
-                            <span className={wrong ? (light ? 'text-red-600' : 'text-red-400') : done ? (light ? 'font-medium text-orange-700' : 'font-medium text-amber-300') : (light ? 'text-black/60' : 'text-white/55')}>
+                            {cur && <span className={`blink -ml-[2px] inline-block h-[1.15em] w-[3px] translate-y-[4px] ${light ? 'bg-emerald-600' : 'bg-emerald-300'}`} />}
+                            <span className={wrong ? (light ? 'bg-red-600/10 text-red-600 underline decoration-red-600/70 underline-offset-4' : 'bg-red-500/15 text-red-400 underline decoration-red-400/70 underline-offset-4') : done ? (light ? 'font-medium text-emerald-700' : 'font-medium text-emerald-300') : (light ? 'text-black/60' : 'text-white/55')}>
                               {ch}
                             </span>
                           </span>
