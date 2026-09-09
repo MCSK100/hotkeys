@@ -188,7 +188,7 @@ export function RaceLane({ racer, pos, racing, weather, light }: { racer: RaceLa
       <span className="absolute left-2.5 top-2.5 flex items-center gap-2">
         <span className={`flex h-6 min-w-6 items-center justify-center rounded-md px-1.5 text-[12px] font-bold ${pos === 1 ? 'bg-white text-black' : 'bg-black/60 text-white/80'}`}>0{pos}</span>
         <span className="flex items-center gap-1.5 rounded-md bg-black/60 px-2 py-1 text-[12px] font-semibold tracking-normal text-white backdrop-blur-sm">
-          {racer.avatar ? <AvatarImage wiki={racer.avatar} size={22} /> : null}
+          {racer.avatar ? <AvatarImage wiki={racer.avatar} size={22} light={light} /> : null}
           {racer.name} <span className="ml-1 text-[11px] font-normal text-white/50">{racer.wpm} wpm</span>
         </span>
       </span>

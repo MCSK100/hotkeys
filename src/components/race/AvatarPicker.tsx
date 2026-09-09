@@ -35,7 +35,7 @@ export default function AvatarPicker({ value, light, onPick, onClose }: {
           {list.map((a) => (
             <button key={a.id} onClick={() => { onPick(a.wiki); onClose(); }} title={a.name}
               className={`flex flex-col items-center gap-1 rounded-xl border p-2 transition ${value === a.wiki ? (light ? 'border-black bg-black/[0.04]' : 'border-white bg-white/10') : (light ? 'border-black/10 hover:border-black/40' : 'border-white/10 hover:border-white/40')}`}>
-              <AvatarImage wiki={a.wiki} size={44} />
+              <AvatarImage wiki={a.wiki} size={44} light={light} />
             </button>
           ))}
         </div>

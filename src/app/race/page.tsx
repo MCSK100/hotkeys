@@ -449,7 +449,7 @@ export default function RacePage() {
             <div className="flex flex-wrap items-center gap-4">
               <span className="flex items-center gap-2">
                 <button onClick={() => setAvatarOpen(true)} title="Choose avatar" aria-label="Choose avatar" className="shrink-0 rounded-full transition hover:scale-105">
-                  <AvatarImage wiki={avatar} size={36} />
+                  <AvatarImage wiki={avatar} size={36} light={light} />
                 </button>
                 <label className="flex items-center gap-2">
                   <span className={`text-[11px] font-medium ${muted}`}>Driver</span>
@@ -482,7 +482,7 @@ export default function RacePage() {
             <p className={`text-[11px] font-medium ${muted}`}>1 · Driver name + avatar</p>
             <div className="mt-2 flex items-center gap-2">
               <button onClick={() => setAvatarOpen(true)} title="Choose avatar" aria-label="Choose avatar" className="shrink-0 rounded-full transition hover:scale-105">
-                <AvatarImage wiki={avatar} size={42} />
+                <AvatarImage wiki={avatar} size={42} light={light} />
               </button>
               <input value={name} data-name="1" maxLength={14}
                 onChange={(e) => { setName(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '')); setNameTouched(true); }}
@@ -581,7 +581,7 @@ export default function RacePage() {
               )}
               {players.map((p) => (
                 <div key={p.id} className={`flex items-center gap-3 rounded-xl border px-3 py-2 ${light ? 'border-black/10 bg-black/[0.03]' : 'border-white/10 bg-black/40'}`}>
-                  <AvatarImage wiki={p.id === myId ? avatar : p.avatar} size={30} />
+                  <AvatarImage wiki={p.id === myId ? avatar : p.avatar} size={30} light={light} />
                   <Car3D color={carOf(p.id === myId ? carId : p.car).color} size="sm" />
                   <span className="text-sm font-semibold">{p.id === myId ? `${displayName} (YOU)` : p.name}</span>
                   {(hostId ? p.id === hostId : (p.id === myId && isHost)) && (
@@ -753,7 +753,7 @@ export default function RacePage() {
                                 {i === 0 ? '🥇 1st' : i === 1 ? '🥈 2nd' : i === 2 ? '🥉 3rd' : `0${i + 1}`}
                               </span>
                             </td>
-                            <td className="py-2 pr-4"><AvatarImage wiki={r.avatar} size={30} /></td>
+                            <td className="py-2 pr-4"><AvatarImage wiki={r.avatar} size={30} light={light} /></td>
                             <td className="py-2 pr-4 font-semibold">{r.name}{r.finished ? ' 🏁' : ''}</td>
                             <td className="py-2 pr-4 tabular-nums">{r.wpm}</td>
                             <td className={`py-2 pr-4 tabular-nums font-semibold ${r.acc >= 95 ? 'text-emerald-500' : r.acc >= 85 ? 'text-amber-500' : 'text-red-500'}`}>{Math.round(r.acc)}%</td>
