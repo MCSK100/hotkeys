@@ -67,15 +67,15 @@ async function fetchWikiMediaArt(wiki: string): Promise<string | null> {
     const set = item?.srcset;
     const src = Array.isArray(set) && set.length > 0 ? set[set.length - 1]?.src ?? set[0]?.src : null;
     if (!src) return null;
-    return upscaleWikiThumb(src.startsWith('http') ? src : `https:${src}`);
+    return src.startsWith('http') ? src : `https:${src}`;
   } catch {
     return null;
   }
 }
 
-function upscaleWikiThumb(src: string): string {
+function upscaleWikiThumb(src: string, width: number): string {
   if (!src.includes('/thumb/')) return src;
-  return src.replace(/\/\d+px-/, '/640px-');
+  return src.replace(/\/\d+px-/, `/${width}px-`);
 }
 
 export async function fetchAvatarThumb(wiki: string): Promise<string | null> {
@@ -90,8 +90,17 @@ export async function fetchAvatarThumb(wiki: string): Promise<string | null> {
     const r = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(def.wiki)}`);
     if (r.ok) {
       const j = await r.json();
-      const raw = j?.thumbnail?.source ?? j?.originalimage?.source ?? null;
-      const src = raw ? upscaleWikiThumb(raw) : null;
+      const t = j?.thumbnail;
+      const o = j?.originalimage;
+      let src: string | null = null;
+      if (o?.source && o.width && o.width <= 640) {
+        src = o.source;
+      } else if (t?.source) {
+        const target = Math.min(640, o?.width ?? t?.width ?? 320);
+        src = upscaleWikiThumb(t.source, target);
+      } else if (o?.source) {
+        src = o.source;
+      }
       if (src) {
         thumbCache.set(def.wiki, src);
         return src;
