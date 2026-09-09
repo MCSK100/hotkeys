@@ -738,7 +738,7 @@ export default function RacePage() {
                 {mode === 'multiplayer' && (
                   <div className="mt-4 overflow-x-auto">
                     <table className="w-full text-[12px]">
-                      <thead><tr className={`text-left ${light ? 'text-black/45' : 'text-white/45'}`}><th className="py-2 pr-4 font-medium">POS</th><th className="py-2 pr-4 font-medium">AVATAR</th><th className="py-2 pr-4 font-medium">RACER</th><th className="py-2 pr-4 font-medium">WPM</th><th className="py-2 pr-4 font-medium">ACCURACY</th><th className="py-2 font-medium">PROGRESS</th></tr></thead>
+                      <thead><tr className={`text-left ${light ? 'text-black/45' : 'text-white/45'}`}><th className="py-2 pr-4 font-medium">POS</th><th className="py-2 pr-4 font-medium">RACER</th><th className="py-2 pr-4 font-medium">WPM</th><th className="py-2 pr-4 font-medium">ACCURACY</th><th className="py-2 font-medium">PROGRESS</th></tr></thead>
                       <tbody>
                         {racers.map((r, i) => (
                           <tr key={r.id} className={`border-t ${light ? 'border-black/10' : 'border-white/10'} ${r.you ? (light ? 'bg-black/[0.03]' : 'bg-white/[0.05]') : ''}`}>
@@ -747,8 +747,7 @@ export default function RacePage() {
                                 {i === 0 ? '🥇 1st' : i === 1 ? '🥈 2nd' : i === 2 ? '🥉 3rd' : `0${i + 1}`}
                               </span>
                             </td>
-                            <td className="py-2 pr-4"><AvatarImage wiki={r.avatar} size={30} light={light} /></td>
-                            <td className="py-2 pr-4 font-semibold">{r.name}{r.finished ? ' 🏁' : ''}</td>
+                            <td className="py-2 pr-4 font-semibold"><span className="flex items-center gap-2"><AvatarImage wiki={r.avatar} size={30} light={light} />{r.name}{r.finished ? ' 🏁' : ''}</span></td>
                             <td className="py-2 pr-4 tabular-nums">{r.wpm}</td>
                             <td className={`py-2 pr-4 tabular-nums font-semibold ${r.acc >= 95 ? 'text-emerald-500' : r.acc >= 85 ? 'text-amber-500' : 'text-red-500'}`}>{Math.round(r.acc)}%</td>
                             <td className="py-2 tabular-nums">{Math.round(r.progress * 100)}%</td>

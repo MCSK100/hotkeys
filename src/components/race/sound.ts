@@ -29,52 +29,19 @@ function tone(freq: number, dur: number, vol = 0.16, delay = 0) {
   osc.stop(t + dur + 0.05);
 }
 
-/** 2-sec winner celebration: soft applause + triumphant fanfare. */
+let cheerAudio: HTMLAudioElement | null = null;
+
+/** Winner crowd cheer clip. */
 export function playClaps() {
-  const c = ac();
-  if (!c) return;
-  const now = c.currentTime;
-  const playNote = (freq: number, at: number, dur: number, vol: number, type: OscillatorType = 'triangle') => {
-    try {
-      const osc = c.createOscillator();
-      const g = c.createGain();
-      osc.type = type;
-      osc.frequency.setValueAtTime(freq, now + at);
-      g.gain.setValueAtTime(0.0001, now + at);
-      g.gain.exponentialRampToValueAtTime(vol, now + at + 0.03);
-      g.gain.exponentialRampToValueAtTime(0.0001, now + at + dur);
-      osc.connect(g);
-      g.connect(c.destination);
-      osc.start(now + at);
-      osc.stop(now + at + dur + 0.05);
-    } catch { /* ignore */ }
-  };
-  const clap = (at: number) => {
-    try {
-      const len = 0.06;
-      const buf = c.createBuffer(1, Math.floor(c.sampleRate * len), c.sampleRate);
-      const d = buf.getChannelData(0);
-      for (let j = 0; j < d.length; j++) d[j] = (Math.random() * 2 - 1) * Math.pow(1 - j / d.length, 2);
-      const src = c.createBufferSource();
-      src.buffer = buf;
-      const f = c.createBiquadFilter();
-      f.type = 'highpass';
-      f.frequency.value = 1800;
-      const g = c.createGain();
-      g.gain.setValueAtTime(0.1 + Math.random() * 0.05, now + at);
-      g.gain.exponentialRampToValueAtTime(0.001, now + at + len + 0.05);
-      src.connect(f);
-      f.connect(g);
-      g.connect(c.destination);
-      src.start(now + at);
-    } catch { /* ignore */ }
-  };
-  for (let i = 0; i < 26; i++) clap((i / 26) * 2 + Math.random() * 0.03);
-  playNote(523.25, 0, 0.35, 0.1);
-  playNote(659.25, 0.12, 0.35, 0.1);
-  playNote(783.99, 0.24, 0.4, 0.12);
-  playNote(1046.5, 0.38, 0.7, 0.12);
-  playNote(1318.5, 0.55, 0.6, 0.05, 'sine');
+  try {
+    if (!cheerAudio) {
+      cheerAudio = new Audio('/dragon-studio-crowd-cheer-406646.mp3');
+      cheerAudio.volume = 0.6;
+      cheerAudio.preload = 'auto';
+    }
+    cheerAudio.currentTime = 0;
+    cheerAudio.play().catch(() => {});
+  } catch { /* audio unavailable */ }
 }
 
 /** Chat pop notification. */
