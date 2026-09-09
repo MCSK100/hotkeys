@@ -9,6 +9,20 @@ export const QUOTES = [
   'The best time to plant a tree was twenty years ago and now is second.',
   'Knowledge is power but enthusiasm pulls the switch and lights the room.',
   'Success is not final and failure is not fatal it is courage to continue.',
+  'Racing lights flash red then green as engines roar down the straight.',
+  'Fast fingers fly across the keys while the crowd holds its breath.',
+  'Every keystroke pushes the car forward toward the finish line ahead.',
+  'The pit crew watches lap times fall as drivers find their rhythm.',
+  'Night rain slicks the track and headlights cut through the mist.',
+  'Desert heat shimmers above the asphalt as tires grip the road.',
+  'Forest mist curls between tall pines while racers chase the lead.',
+  'Snow caps the alpine peaks as the final lap begins at dawn.',
+  'A steady rhythm beats raw speed when accuracy keeps you clean.',
+  'Champions are made in the last ten seconds of every close race.',
+  'Type like the wind and let your car dance across the finish.',
+  'Focus on the next word and the speed will follow on its own.',
+  'Great drivers stay calm when the pressure rises at the start.',
+  'The countdown ends and every racer launches off the line together.',
 ];
 
 export function randomQuote(exclude?: string) {
@@ -35,15 +49,17 @@ export function buildLongText(minutes: number, seed = ''): string {
   return parts.join(' ');
 }
 
-export function sharedTimedText(roomCode: string, minutes: number): string {
-  return buildLongText(minutes, `room-${roomCode}`);
+export function sharedTimedText(roomCode: string, minutes: number, round = 0): string {
+  return buildLongText(minutes, `room-${roomCode}-r${round}`);
 }
 
-export function sharedQuote(roomCode: string): string {
+export function sharedQuote(roomCode: string, round = 0): string {
   let h = 0;
   for (const c of roomCode.toUpperCase()) h = (h * 31 + c.charCodeAt(0)) % 997;
-  const start = h % QUOTES.length;
-  const parts = [QUOTES[start], QUOTES[(start + 3) % QUOTES.length], QUOTES[(start + 6) % QUOTES.length]];
+  const n = QUOTES.length;
+  const rot = (h + round * 7 + Math.floor(round / n) * 3) % n;
+  const step = 3 + (round % 4);
+  const parts = [QUOTES[rot % n], QUOTES[(rot + step) % n], QUOTES[(rot + step * 2 + 1) % n]];
   return parts.join(' ');
 }
 

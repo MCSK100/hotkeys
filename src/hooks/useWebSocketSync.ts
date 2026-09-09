@@ -4,10 +4,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? 'ws://localhost:3001';
 
-export type NetPlayer = { id: string; name: string; car: string; progress: number; wpm: number; acc: number; finished: boolean };
+export type NetPlayer = { id: string; name: string; car: string; avatar: string; progress: number; wpm: number; acc: number; finished: boolean };
 export type ChatMsg = { id: string; name: string; text: string; ts: number };
 
-export function useRoom(roomCode: string | null, name: string, car: string, enabled: boolean) {
+export function useRoom(roomCode: string | null, name: string, car: string, avatar: string, enabled: boolean) {
   const [players, setPlayers] = useState<NetPlayer[]>([]);
   const [chat, setChat] = useState<ChatMsg[]>([]);
   const [round, setRound] = useState(0);
@@ -22,8 +22,8 @@ export function useRoom(roomCode: string | null, name: string, car: string, enab
   const idRef = useRef(`p-${Math.random().toString(36).slice(2, 8)}`);
   const lastSend = useRef(0);
   // Identity captured at join time so typing in inputs can't reconnect the socket.
-  const identityRef = useRef({ name, car });
-  identityRef.current = { name, car };
+  const identityRef = useRef({ name, car, avatar });
+  identityRef.current = { name, car, avatar };
 
   useEffect(() => {
     setGo(false);
@@ -59,7 +59,7 @@ export function useRoom(roomCode: string | null, name: string, car: string, enab
     ws.onopen = () => {
       if (closed) return;
       setConnected(true);
-      sock.send(JSON.stringify({ type: 'JOIN_ROOM', payload: { roomCode, profile: { id: myId, name: identity.name, car: identity.car } } }));
+      sock.send(JSON.stringify({ type: 'JOIN_ROOM', payload: { roomCode, profile: { id: myId, name: identity.name, car: identity.car, avatar: identity.avatar } } }));
     };
     ws.onmessage = (e) => {
       try {
@@ -69,10 +69,11 @@ export function useRoom(roomCode: string | null, name: string, car: string, enab
           if (typeof msg.room?.weather === 'string') setRoomWeather(msg.room.weather);
           if (typeof msg.room?.hostId === 'string') setHostId(msg.room.hostId);
           if (typeof msg.room?.status === 'string') setRoomStatus(msg.room.status);
-          const list = (msg.room?.players ?? []).map((p: { id: string; profile?: { name?: string; car?: string }; progress?: { progressPercent?: number; currentWpm?: number; accuracy?: number; finished?: boolean } }) => ({
+          const list = (msg.room?.players ?? []).map((p: { id: string; profile?: { name?: string; car?: string; avatar?: string }; progress?: { progressPercent?: number; currentWpm?: number; accuracy?: number; finished?: boolean } }) => ({
             id: p.id,
             name: p.id === myId ? `${identity.name} (YOU)` : (p.profile?.name ?? 'RACER'),
             car: p.id === myId ? identity.car : (p.profile?.car ?? 'volt'),
+            avatar: p.id === myId ? identity.avatar : (p.profile?.avatar ?? 'Vijay_(actor)'),
             progress: p.progress?.progressPercent ?? 0,
             wpm: Math.round(p.progress?.currentWpm ?? 0),
             acc: Math.round((p.progress?.accuracy ?? 100) * 10) / 10,
@@ -83,13 +84,14 @@ export function useRoom(roomCode: string | null, name: string, car: string, enab
         if (msg.type === 'PROGRESS_BATCH') {
           setPlayers((prev) => {
             const known = new Map(prev.map((p) => [p.id, p]));
-            return (msg.payloads ?? []).map((p: { pid: string; p: number; w: number; a?: number; f?: number }) => {
+            return (msg.payloads ?? []).map((p: { pid: string; p: number; w: number; a?: number; f?: number; av?: string }) => {
               const old = known.get(p.pid);
               const mine = p.pid === myId;
               return {
                 id: p.pid,
                 name: mine ? `${identity.name} (YOU)` : (old?.name ?? p.pid.slice(0, 6)),
                 car: mine ? identity.car : (old?.car ?? 'volt'),
+                avatar: mine ? identity.avatar : (p.av ?? old?.avatar ?? 'Vijay_(actor)'),
                 progress: p.p ?? 0, wpm: Math.round(p.w ?? 0), acc: Math.round((p.a ?? old?.acc ?? 100) * 10) / 10, finished: Boolean(p.f) || (p.p ?? 0) >= 1,
               };
             });

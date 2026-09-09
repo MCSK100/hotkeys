@@ -5,7 +5,7 @@ const PORT = Number(process.env.PORT ?? 3001);
 const LOBBY_WAIT = 15;
 
 type Prog = { progressPercent: number; currentWpm: number; accuracy: number; finished?: boolean };
-type Player = { id: string; name: string; car: string; progress: Prog; socket: WebSocket };
+type Player = { id: string; name: string; car: string; avatar: string; progress: Prog; socket: WebSocket };
 const WEATHERS = ['rain', 'desert', 'forest', 'mountain'];
 
 type ChatMsg = { id: string; name: string; text: string; ts: number };
@@ -31,7 +31,7 @@ function snapshot(room: Room) {
     hostId: room.hostId,
     players: [...room.players.values()].map((p) => ({
       id: p.id,
-      profile: { id: p.id, name: p.name, car: p.car },
+      profile: { id: p.id, name: p.name, car: p.car, avatar: p.avatar },
       progress: p.progress,
     })),
     countdown: 0,
@@ -110,10 +110,11 @@ server.on('connection', (socket) => {
         playerId = String(profile.id ?? `guest-${Math.random().toString(36).slice(2)}`);
         const name = String(profile.name ?? 'RACER').slice(0, 16);
         const car = String(profile.car ?? 'volt').slice(0, 16);
+        const avatar = String(profile.avatar ?? 'Vijay_(actor)').slice(0, 80);
         const room = getRoom(code);
         roomCode = code;
         const existing = room.players.get(playerId);
-        room.players.set(playerId, { id: playerId, name, car, progress: existing?.progress ?? { progressPercent: 0, currentWpm: 0, accuracy: 100 }, socket });
+        room.players.set(playerId, { id: playerId, name, car, avatar, progress: existing?.progress ?? { progressPercent: 0, currentWpm: 0, accuracy: 100 }, socket });
         // First driver in the room becomes the host (room owner).
         if (!room.hostId || !room.players.has(room.hostId)) room.hostId = playerId;
         socket.send(JSON.stringify({ type: 'ROOM_STATE', room: snapshot(room) }));
@@ -160,7 +161,7 @@ server.on('connection', (socket) => {
         broadcast(room, {
           type: 'PROGRESS_BATCH',
           payloads: [...room.players.values()].map((p) => ({
-            pid: p.id, c: 0, w: p.progress.currentWpm, p: p.progress.progressPercent, a: p.progress.accuracy ?? 100, f: p.progress.finished ? 1 : 0, e: false,
+            pid: p.id, c: 0, w: p.progress.currentWpm, p: p.progress.progressPercent, a: p.progress.accuracy ?? 100, f: p.progress.finished ? 1 : 0, av: p.avatar, e: false,
           })),
         });
       }

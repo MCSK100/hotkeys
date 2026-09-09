@@ -2,10 +2,11 @@
 
 import { useEffect } from 'react';
 import Car3D from './Car3D';
+import AvatarImage from './AvatarImage';
 import { playClaps } from './sound';
 
 export type PodiumRacer = {
-  id: string; name: string; color: string; carId: string;
+  id: string; name: string; color: string; carId: string; avatar?: string;
   progress: number; wpm: number; acc: number; you: boolean; finished: boolean;
 };
 
@@ -55,6 +56,7 @@ export default function WinnerModal({ racers, allFinished, light, soundOn, onClo
         </div>
         <div className="relative p-6 text-center">
           <div className="text-6xl" style={{ animation: 'cupBounce 1.2s ease-in-out infinite' }}>🏆</div>
+          <div className="mt-2 flex justify-center">{winner.avatar ? <AvatarImage wiki={winner.avatar} size={56} ring="#f59e0b" /> : null}</div>
           <p className={`mt-2 text-[11px] font-bold uppercase tracking-[0.2em] ${light ? 'text-black/50' : 'text-white/50'}`}>{allFinished ? 'Race complete · Winner' : 'First to finish · Winner'}</p>
           <h2 className="mt-1 truncate text-3xl font-extrabold tracking-tight">{winner.name}</h2>
           <p className={`mt-1 text-[12px] font-medium tabular-nums ${light ? 'text-black/60' : 'text-white/60'}`}>{winner.wpm} WPM · {Math.round(winner.acc)}% acc · {Math.round(winner.progress * 100)}%</p>
@@ -72,6 +74,7 @@ export default function WinnerModal({ racers, allFinished, light, soundOn, onClo
               return (
                 <div key={r.id} className={`flex items-center gap-2 px-3 py-2 ${i !== 0 ? (light ? 'border-t border-black/10' : 'border-t border-white/10') : ''} ${r.you ? (light ? 'bg-black/[0.04]' : 'bg-white/[0.06]') : ''}`}>
                   <span className={`flex min-w-[52px] items-center gap-1 rounded-full px-2 py-1 text-[10px] font-bold ${b.cls}`}><span>{b.icon}</span>{b.label}</span>
+                  {r.avatar ? <AvatarImage wiki={r.avatar} size={24} /> : null}
                   <span className="min-w-0 flex-1 truncate font-semibold">{r.name}{r.you ? ' · YOU' : ''}</span>
                   <span className={`tabular-nums ${light ? 'text-black/60' : 'text-white/60'}`}>{r.wpm} wpm</span>
                   <span className={`w-14 text-right tabular-nums font-semibold ${r.acc >= 95 ? 'text-emerald-500' : r.acc >= 85 ? 'text-amber-500' : 'text-red-500'}`}>{Math.round(r.acc)}%</span>

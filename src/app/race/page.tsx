@@ -8,6 +8,9 @@ import { CARS, loadHistory, makeRoomCode, saveResult, sharedQuote, sharedTimedTe
 import { countBeep, engineRev, goBeep, chatPop } from '@/components/race/sound';
 import Car3D from '@/components/race/Car3D';
 import WinnerModal from '@/components/race/WinnerModal';
+import AvatarImage from '@/components/race/AvatarImage';
+import AvatarPicker from '@/components/race/AvatarPicker';
+import { preloadAvatars } from '@/components/race/avatars';
 import { WEATHERS, RaceLane, WeatherPicker, isWeather, type WeatherId } from '@/components/race/Track';
 import WeatherCanvas from '@/components/race/WeatherCanvas';
 import RoomChat from '@/components/race/RoomChat';
@@ -15,24 +18,32 @@ import RoomChat from '@/components/race/RoomChat';
 type Mode = 'practice' | 'multiplayer';
 
 type Racer = {
-  id: string; name: string; carId: string; color: string;
+  id: string; name: string; carId: string; color: string; avatar: string;
   progress: number; wpm: number; acc: number; you: boolean; finished: boolean;
 };
 
-function RaceLights({ step }: { step: number }) {
-  const on = (i: number) => step <= i;
-  const cols = ['#ef4444', '#f59e0b', '#22c55e'];
+function RaceLights({ remaining, large }: { remaining: number; large?: boolean }) {
+  const red = remaining <= 3;
+  const amber = remaining <= 2;
+  const green = remaining <= 1;
+  const go = remaining <= 0;
+  const s = large ? 'h-9 w-9' : 'h-5 w-5';
+  const lamp = (color: string, active: boolean, glow: string) => (
+    <span className={`${s} rounded-full transition-all duration-200`} style={{
+      background: active ? color : 'rgba(255,255,255,.14)',
+      boxShadow: active ? `0 0 12px 3px ${glow}, 0 0 28px 6px ${glow}55` : 'inset 0 1px 3px rgba(0,0,0,.6)',
+      transform: active ? 'scale(1.12)' : 'scale(1)',
+      opacity: active ? 1 : 0.6,
+    }} />
+  );
   return (
-    <span className="flex items-center gap-2 rounded-full bg-black/70 px-3 py-2">
-      <style>{`@keyframes lightGlow { 0%,100% { box-shadow: 0 0 6px 2px currentColor; } 50% { box-shadow: 0 0 14px 5px currentColor; } }`}</style>
-      {cols.map((c, i) => (
-        <span key={c} className="h-4 w-4 rounded-full" style={{
-          background: on(i) ? c : 'rgba(255,255,255,.15)',
-          color: c,
-          animation: on(i) ? 'lightGlow .6s ease-in-out infinite' : 'none',
-          opacity: on(i) ? 1 : 0.5,
-        }} />
-      ))}
+    <span className={`flex items-center gap-2.5 rounded-2xl border border-white/10 bg-black/80 ${large ? 'px-5 py-3' : 'px-3 py-2'}`}>
+      <style>{`@keyframes goPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.15); } }`}</style>
+      {lamp('#ef4444', red, '#ef4444')}
+      {lamp('#f59e0b', amber, '#f59e0b')}
+      <span style={go ? { animation: 'goPulse .5s ease-in-out infinite' } : undefined}>
+        {lamp('#22c55e', green || go, '#22c55e')}
+      </span>
     </span>
   );
 }
@@ -62,6 +73,8 @@ export default function RacePage() {
   const [name, setName] = useState('');
   const [nameTouched, setNameTouched] = useState(false);
   const [carId, setCarId] = useState('volt');
+  const [avatar, setAvatar] = useState('Vijay_(actor)');
+  const [avatarOpen, setAvatarOpen] = useState(false);
   const [roomCode, setRoomCode] = useState<string | null>(null);
   const [inviteCode, setInviteCode] = useState<string | null>(null);
   const [joinCode, setJoinCode] = useState('');
@@ -89,7 +102,7 @@ export default function RacePage() {
 
   const car = carOf(carId);
   const inRoom = mode === 'multiplayer' && joined && !!roomCode;
-  const { players, chat, sendChat, round, connected, lobbySecs, go, myId, hostId, roomStatus, send, startRace, setGo, roomDuration, setDuration: pushDuration, roomWeather, setWeather: pushWeather } = useRoom(roomCode, name, carId, inRoom);
+  const { players, chat, sendChat, round, connected, lobbySecs, go, myId, hostId, roomStatus, send, startRace, setGo, roomDuration, setDuration: pushDuration, roomWeather, setWeather: pushWeather } = useRoom(roomCode, name, carId, avatar, inRoom);
   const raceLive = roomStatus === 'countdown' || roomStatus === 'racing';
   const host = hostId ? myId === hostId : isHost;
   const activeWeather = WEATHERS[mode === 'practice' ? weather : isWeather(roomWeather) ? (roomWeather as WeatherId) : 'rain'];
@@ -132,8 +145,16 @@ export default function RacePage() {
   useEffect(() => {
     try {
       if (localStorage.getItem('hk-race-theme') === 'light') setLight(true);
+      const av = localStorage.getItem('hk-race-avatar');
+      if (av) setAvatar(av);
     } catch { /* ignore */ }
+    preloadAvatars();
   }, []);
+
+  const pickAvatar = (wiki: string) => {
+    setAvatar(wiki);
+    try { localStorage.setItem('hk-race-avatar', wiki); } catch { /* ignore */ }
+  };
 
   const toggleTheme = () => {
     setLight((v) => {
@@ -179,13 +200,14 @@ export default function RacePage() {
   }, [connected, isHost, roomCode, mpDuration, mpWeather, pushDuration, pushWeather]);
 
   // Every race round (first + every host rematch) starts exactly once per joined player.
+  // Text is seeded by room + round so every rematch types a different paragraph.
   useEffect(() => {
     if (go && roomCode && round !== lastRound.current && round > 0) {
       lastRound.current = round;
       savedRef.current = false;
       const d = roomDuration;
-      if (d > 0) startTimedRef.current(d, sharedTimedText(roomCode, d), false);
-      else newRaceRef.current(sharedQuote(roomCode));
+      if (d > 0) startTimedRef.current(d, sharedTimedText(roomCode, d, round), false);
+      else newRaceRef.current(sharedQuote(roomCode, round));
       setTimeout(() => inputRef.current?.focus(), 400);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -256,9 +278,9 @@ export default function RacePage() {
 
   const racers: Racer[] = useMemo(() => {
     if (mode === 'practice') {
-      return [{ id: 'you', name: `${displayName} (YOU)`, carId, color: car.color, progress: laneProgress, wpm: Math.round(wpm), acc: Math.round(engine.acc * 10) / 10, you: true, finished }];
+      return [{ id: 'you', name: `${displayName} (YOU)`, carId, color: car.color, avatar, progress: laneProgress, wpm: Math.round(wpm), acc: Math.round(engine.acc * 10) / 10, you: true, finished }];
     }
-    const me: Racer = { id: myId, name: `${displayName} (YOU)`, carId, color: car.color, progress: laneProgress, wpm: Math.round(wpm), acc: Math.round(engine.acc * 10) / 10, you: true, finished };
+    const me: Racer = { id: myId, name: `${displayName} (YOU)`, carId, color: car.color, avatar, progress: laneProgress, wpm: Math.round(wpm), acc: Math.round(engine.acc * 10) / 10, you: true, finished };
     if (!inRoom || players.length === 0) return [me];
     const map = new Map<string, Racer>();
     map.set(myId, me);
@@ -268,11 +290,11 @@ export default function RacePage() {
         continue;
       }
       const c = carOf(p.car);
-      map.set(p.id, { id: p.id, name: p.name, carId: p.car, color: c.color, progress: p.progress, wpm: p.wpm, acc: p.acc ?? 100, you: false, finished: p.finished });
+      map.set(p.id, { id: p.id, name: p.name, carId: p.car, color: c.color, avatar: p.avatar, progress: p.progress, wpm: p.wpm, acc: p.acc ?? 100, you: false, finished: p.finished });
     }
     return [...map.values()].sort((a, b) => b.progress - a.progress || b.wpm - a.wpm);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, displayName, carId, inRoom, players, myId, laneProgress, wpm, finished, car.color, engine.acc]);
+  }, [mode, displayName, carId, avatar, inRoom, players, myId, laneProgress, wpm, finished, car.color, engine.acc]);
 
   const words = useMemo(() => {
     const out: { word: string; start: number }[] = [];
@@ -283,8 +305,7 @@ export default function RacePage() {
   }, [engine.text]);
 
   const myPos = racers.findIndex((r) => r.you) + 1;
-  const allFinished = racers.length > 1 && racers.every((r) => r.finished);
-  const anyFinished = racers.some((r) => r.finished);
+  const allFinished = inRoom && racers.length >= 1 && racers.every((r) => r.finished);
 
   useEffect(() => {
     if (chat.length > prevChatLen.current) {
@@ -303,15 +324,12 @@ export default function RacePage() {
   }, [round]);
 
   useEffect(() => {
-    if (mode === 'multiplayer' && inRoom && finished && anyFinished && !winnerDismissed.current) {
+    if (mode === 'multiplayer' && inRoom && allFinished && !winnerDismissed.current) {
       const t = setTimeout(() => setShowWinner(true), 700);
       return () => clearTimeout(t);
     }
-    if (!finished) {
-      winnerDismissed.current = false;
-      setShowWinner(false);
-    }
-  }, [mode, inRoom, finished, anyFinished]);
+    if (!allFinished) setShowWinner(false);
+  }, [mode, inRoom, allFinished]);
   const linkDur = (inRoom ? roomDuration : mpDuration) || 0;
   const linkWeather = inRoom ? (isWeather(roomWeather) ? roomWeather : 'rain') : mpWeather;
   const inviteLink = roomCode && typeof window !== 'undefined'
@@ -428,12 +446,17 @@ export default function RacePage() {
         {mode === 'practice' && (
           <section className={`mt-4 rounded-2xl border p-4 ${card}`}>
             <div className="flex flex-wrap items-center gap-4">
-              <label className="flex items-center gap-2">
-                <span className={`text-[11px] font-medium ${muted}`}>Driver</span>
-                <input value={name} data-name="1" maxLength={14} onChange={(e) => setName(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, ''))}
-                  placeholder="YOUR NAME" aria-label="Racer name"
-                  className={`w-36 rounded-lg border px-3 py-2 text-[12px] font-medium outline-none ${inputCls}`} />
-              </label>
+              <span className="flex items-center gap-2">
+                <button onClick={() => setAvatarOpen(true)} title="Pick avatar" aria-label="Pick avatar" className="shrink-0 rounded-full transition hover:scale-105">
+                  <AvatarImage wiki={avatar} size={36} />
+                </button>
+                <label className="flex items-center gap-2">
+                  <span className={`text-[11px] font-medium ${muted}`}>Driver</span>
+                  <input value={name} data-name="1" maxLength={14} onChange={(e) => setName(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, ''))}
+                    placeholder="YOUR NAME" aria-label="Racer name"
+                    className={`w-36 rounded-lg border px-3 py-2 text-[12px] font-medium outline-none ${inputCls}`} />
+                </label>
+              </span>
               <div className="flex flex-1 flex-wrap items-center gap-2">
                 <span className={`text-[11px] font-medium ${muted}`}>Garage</span>
                 {CARS.map((c) => (
@@ -455,11 +478,16 @@ export default function RacePage() {
                 Invited to room {inviteCode}{mpDuration > 0 ? ` · ${mpDuration} min timed` : ' · Sprint'} — set your name, pick a car, hit Join.
               </p>
             )}
-            <p className={`text-[11px] font-medium ${muted}`}>1 · Driver name</p>
-            <input value={name} data-name="1" maxLength={14}
-              onChange={(e) => { setName(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '')); setNameTouched(true); }}
-              placeholder="Enter your name to race" aria-label="Racer name"
-              className={`mt-2 w-52 rounded-xl border px-3 py-2.5 text-sm outline-none ${inputCls} ${nameTouched && !nameValid ? (light ? '!border-red-500' : '!border-red-400') : ''}`} />
+            <p className={`text-[11px] font-medium ${muted}`}>1 · Driver name + avatar</p>
+            <div className="mt-2 flex items-center gap-2">
+              <button onClick={() => setAvatarOpen(true)} title="Pick avatar" aria-label="Pick avatar" className="shrink-0 rounded-full transition hover:scale-105">
+                <AvatarImage wiki={avatar} size={42} />
+              </button>
+              <input value={name} data-name="1" maxLength={14}
+                onChange={(e) => { setName(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '')); setNameTouched(true); }}
+                placeholder="Enter your name to race" aria-label="Racer name"
+                className={`w-52 rounded-xl border px-3 py-2.5 text-sm outline-none ${inputCls} ${nameTouched && !nameValid ? (light ? '!border-red-500' : '!border-red-400') : ''}`} />
+            </div>
             {nameTouched && !nameValid && (
               <p className="mt-1.5 text-[12px] font-medium text-red-500">Please enter your name to join the race.</p>
             )}
@@ -552,6 +580,7 @@ export default function RacePage() {
               )}
               {players.map((p) => (
                 <div key={p.id} className={`flex items-center gap-3 rounded-xl border px-3 py-2 ${light ? 'border-black/10 bg-black/[0.03]' : 'border-white/10 bg-black/40'}`}>
+                  <AvatarImage wiki={p.id === myId ? avatar : p.avatar} size={30} />
                   <Car3D color={carOf(p.id === myId ? carId : p.car).color} size="sm" />
                   <span className="text-sm font-semibold">{p.id === myId ? `${displayName} (YOU)` : p.name}</span>
                   {(hostId ? p.id === hostId : (p.id === myId && isHost)) && (
@@ -563,11 +592,18 @@ export default function RacePage() {
             </div>
             {lobbySecs !== null ? (
               <div className={`mt-5 rounded-xl border px-4 py-4 text-center ${light ? 'border-black/15 bg-black/[0.03]' : 'border-white/15 bg-white/[0.04]'}`}>
-                <div className="flex items-center justify-center gap-3">
-                  <RaceLights step={lobbySecs <= 12 ? 2 : lobbySecs <= 13 ? 1 : lobbySecs <= 14 ? 0 : -1} />
-                  <p className="text-6xl font-semibold tabular-nums">{lobbySecs}</p>
-                </div>
-                <p className={`mt-1 text-[11px] ${faint2}`}>Race starts — get ready to type</p>
+                {lobbySecs > 3 ? (
+                  <>
+                    <p className="text-6xl font-semibold tabular-nums">{lobbySecs}</p>
+                    <p className={`mt-1 text-[11px] ${faint2}`}>Race starts — get ready to type</p>
+                  </>
+                ) : (
+                  <div className="flex flex-col items-center gap-3">
+                    <RaceLights remaining={lobbySecs} large />
+                    <p className="text-7xl font-extrabold tabular-nums">{lobbySecs}</p>
+                    <p className={`text-[11px] font-semibold uppercase tracking-[0.2em] ${faint2}`}>On your marks</p>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="mt-5 flex flex-wrap items-center gap-3">
@@ -617,9 +653,9 @@ export default function RacePage() {
             <section className={`relative mt-4 rounded-2xl border p-5 md:p-7 ${light ? 'border-black/10 bg-white' : 'border-white/10 bg-black/50'}`} onClick={smartFocus}>
               {engine.phase === 'countdown' && (
                 <div className={`absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-2xl backdrop-blur-[2px] ${light ? 'bg-white/80' : 'bg-black/70'}`}>
-                  <RaceLights step={engine.countdown >= 3 ? 0 : engine.countdown === 2 ? 1 : engine.countdown <= 1 ? 2 : 2} />
-                  <p className="text-7xl font-semibold tabular-nums">{engine.countdown > 0 ? engine.countdown : 'GO'}</p>
-                  <p className={`text-[11px] ${faint2}`}>Get ready</p>
+                  <RaceLights remaining={engine.countdown} large />
+                  <p className="text-7xl font-extrabold tabular-nums">{engine.countdown > 0 ? engine.countdown : 'GO'}</p>
+                  <p className={`text-[11px] font-semibold uppercase tracking-[0.2em] ${faint2}`}>{engine.countdown > 0 ? 'On your marks' : 'Go go go'}</p>
                 </div>
               )}
               {engine.phase === 'lobby' && (
@@ -707,7 +743,7 @@ export default function RacePage() {
                 {mode === 'multiplayer' && (
                   <div className="mt-4 overflow-x-auto">
                     <table className="w-full text-[12px]">
-                      <thead><tr className={`text-left ${light ? 'text-black/45' : 'text-white/45'}`}><th className="py-2 pr-4 font-medium">POS</th><th className="py-2 pr-4 font-medium">RACER</th><th className="py-2 pr-4 font-medium">WPM</th><th className="py-2 pr-4 font-medium">ACCURACY</th><th className="py-2 font-medium">PROGRESS</th></tr></thead>
+                      <thead><tr className={`text-left ${light ? 'text-black/45' : 'text-white/45'}`}><th className="py-2 pr-4 font-medium">POS</th><th className="py-2 pr-4 font-medium">AVATAR</th><th className="py-2 pr-4 font-medium">RACER</th><th className="py-2 pr-4 font-medium">WPM</th><th className="py-2 pr-4 font-medium">ACCURACY</th><th className="py-2 font-medium">PROGRESS</th></tr></thead>
                       <tbody>
                         {racers.map((r, i) => (
                           <tr key={r.id} className={`border-t ${light ? 'border-black/10' : 'border-white/10'} ${r.you ? (light ? 'bg-black/[0.03]' : 'bg-white/[0.05]') : ''}`}>
@@ -716,6 +752,7 @@ export default function RacePage() {
                                 {i === 0 ? '🥇 1st' : i === 1 ? '🥈 2nd' : i === 2 ? '🥉 3rd' : `0${i + 1}`}
                               </span>
                             </td>
+                            <td className="py-2 pr-4"><AvatarImage wiki={r.avatar} size={30} /></td>
                             <td className="py-2 pr-4 font-semibold">{r.name}{r.finished ? ' 🏁' : ''}</td>
                             <td className="py-2 pr-4 tabular-nums">{r.wpm}</td>
                             <td className={`py-2 pr-4 tabular-nums font-semibold ${r.acc >= 95 ? 'text-emerald-500' : r.acc >= 85 ? 'text-amber-500' : 'text-red-500'}`}>{Math.round(r.acc)}%</td>
@@ -755,8 +792,11 @@ export default function RacePage() {
           Chat{chat.length > 0 ? ` · ${chat.length}` : ''}{chatPing ? ' • new!' : ''}
         </button>
       )}
-      {showWinner && mode === 'multiplayer' && finished && (
+      {showWinner && mode === 'multiplayer' && allFinished && (
         <WinnerModal racers={racers} allFinished={allFinished} light={light} soundOn={soundOn} onClose={() => { winnerDismissed.current = true; setShowWinner(false); }} />
+      )}
+      {avatarOpen && (
+        <AvatarPicker value={avatar} light={light} onPick={pickAvatar} onClose={() => setAvatarOpen(false)} />
       )}
     </main>
   );
