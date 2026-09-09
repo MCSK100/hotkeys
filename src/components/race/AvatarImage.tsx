@@ -14,7 +14,7 @@ export default function AvatarImage({ wiki, size = 28, ring }: { wiki: string; s
   if (src) {
     // eslint-disable-next-line @next/next/no-img-element
     return <img src={src} alt={def.name} title={def.name} loading="lazy" referrerPolicy="no-referrer"
-      className="shrink-0 rounded-full object-cover" style={{ width: size, height: size, border: ring ? `2px solid ${ring}` : undefined, background: '#222' }} />;
+      className="shrink-0 rounded-full object-cover" style={{ width: size, height: size, objectPosition: '50% 18%', border: ring ? `2px solid ${ring}` : undefined, background: '#222' }} />;
   }
   return (
     <span title={def.name} className="flex shrink-0 items-center justify-center rounded-full bg-white/15 text-[11px] font-bold text-white"
