@@ -23,10 +23,10 @@ type Racer = {
 };
 
 function RaceLights({ remaining, large }: { remaining: number; large?: boolean }) {
-  const red = remaining <= 3;
-  const amber = remaining <= 2;
-  const green = remaining <= 1;
   const go = remaining <= 0;
+  const red = go || remaining > 2;
+  const amber = go || remaining === 2;
+  const green = go || remaining === 1;
   const s = large ? 'h-9 w-9' : 'h-5 w-5';
   const lamp = (color: string, active: boolean, glow: string) => (
     <span className={`${s} rounded-full transition-all duration-200`} style={{
@@ -39,10 +39,14 @@ function RaceLights({ remaining, large }: { remaining: number; large?: boolean }
   return (
     <span className={`flex items-center gap-2.5 rounded-2xl border border-white/10 bg-black/80 ${large ? 'px-5 py-3' : 'px-3 py-2'}`}>
       <style>{`@keyframes goPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.15); } }`}</style>
-      {lamp('#ef4444', red, '#ef4444')}
-      {lamp('#f59e0b', amber, '#f59e0b')}
       <span style={go ? { animation: 'goPulse .5s ease-in-out infinite' } : undefined}>
-        {lamp('#22c55e', green || go, '#22c55e')}
+        {lamp('#ef4444', red, '#ef4444')}
+      </span>
+      <span style={go ? { animation: 'goPulse .5s ease-in-out infinite' } : undefined}>
+        {lamp('#f59e0b', amber, '#f59e0b')}
+      </span>
+      <span style={go ? { animation: 'goPulse .5s ease-in-out infinite' } : undefined}>
+        {lamp('#22c55e', green, '#22c55e')}
       </span>
     </span>
   );
@@ -593,18 +597,8 @@ export default function RacePage() {
             </div>
             {lobbySecs !== null ? (
               <div className={`mt-5 rounded-xl border px-4 py-4 text-center ${light ? 'border-black/15 bg-black/[0.03]' : 'border-white/15 bg-white/[0.04]'}`}>
-                {lobbySecs > 3 ? (
-                  <>
-                    <p className="text-6xl font-semibold tabular-nums">{lobbySecs}</p>
-                    <p className={`mt-1 text-[11px] ${faint2}`}>Race starts — get ready to type</p>
-                  </>
-                ) : (
-                  <div className="flex flex-col items-center gap-3">
-                    <RaceLights remaining={lobbySecs} large />
-                    <p className="text-7xl font-extrabold tabular-nums">{lobbySecs}</p>
-                    <p className={`text-[11px] font-semibold uppercase tracking-[0.2em] ${faint2}`}>On your marks</p>
-                  </div>
-                )}
+                <p className="text-6xl font-semibold tabular-nums">{lobbySecs}</p>
+                <p className={`mt-1 text-[11px] ${faint2}`}>Race starts — get ready to type</p>
               </div>
             ) : (
               <div className="mt-5 flex flex-wrap items-center gap-3">
