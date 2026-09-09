@@ -145,15 +145,16 @@ export default function RacePage() {
   useEffect(() => {
     try {
       if (localStorage.getItem('hk-race-theme') === 'light') setLight(true);
-      const av = localStorage.getItem('hk-race-avatar');
+      const av = localStorage.getItem('hk-race-avatar-v2');
       if (av) setAvatar(av);
+      else setAvatar('');
     } catch { /* ignore */ }
     preloadAvatars();
   }, []);
 
   const pickAvatar = (wiki: string) => {
     setAvatar(wiki);
-    try { localStorage.setItem('hk-race-avatar', wiki); } catch { /* ignore */ }
+    try { localStorage.setItem('hk-race-avatar-v2', wiki); } catch { /* ignore */ }
   };
 
   const toggleTheme = () => {
