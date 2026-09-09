@@ -26,41 +26,77 @@ export const AVATARS: AvatarDef[] = [
   { id: 'udhayanidhi', name: 'Udhayanidhi', category: 'leaders', wiki: 'Udhayanidhi_Stalin' },
   { id: 'putin', name: 'Vladimir Putin', category: 'leaders', wiki: 'Vladimir_Putin' },
   { id: 'trump', name: 'Donald Trump', category: 'leaders', wiki: 'Donald_Trump' },
-  { id: 'hulk', name: 'Hulk', category: 'heroes', wiki: 'Hulk', img: 'https://commons.wikimedia.org/wiki/Special:FilePath/Cosplay%20of%20Hulk%20at%20Brussels%20Comic%20Con%202019%20(33424478778).jpg?width=200' },
-  { id: 'ironman', name: 'Iron Man', category: 'heroes', wiki: 'Iron_Man', img: 'https://commons.wikimedia.org/wiki/Special:FilePath/Iron%20Man%20Cosplay%20at%202013%20Phoenix%20Comicon.jpg?width=200' },
-  { id: 'thor', name: 'Thor', category: 'heroes', wiki: 'Thor_(Marvel_Comics)', img: 'https://commons.wikimedia.org/wiki/Special:FilePath/Genderbent%20Thor%20Cosplay%20(14766539893).jpg?width=200' },
-  { id: 'thanos', name: 'Thanos', category: 'heroes', wiki: 'Thanos', img: 'https://commons.wikimedia.org/wiki/Special:FilePath/Cosplay%20of%20Thanos%20at%20GalaxyCon%20Richmond%202020%20(49666517961).jpg?width=200' },
-  { id: 'cap', name: 'Captain America', category: 'heroes', wiki: 'Captain_America', img: 'https://commons.wikimedia.org/wiki/Special:FilePath/Cosplay%20of%20Captain%20America%20at%20GalaxyCon%20Richmond%202020%20(49666535606).jpg?width=200' },
-  { id: 'superman', name: 'Superman', category: 'heroes', wiki: 'Superman', img: 'https://commons.wikimedia.org/wiki/Special:FilePath/Superman%20Cosplay%20at%20NYCC%202017.jpg?width=200' },
-  { id: 'spiderman', name: 'Spider-Man', category: 'heroes', wiki: 'Spider-Man', img: 'https://commons.wikimedia.org/wiki/Special:FilePath/Asia%20Comic%20Expo%202023%20-%20Spider-Man%20cosplay%201.jpg?width=200' },
-  { id: 'batman', name: 'Batman', category: 'heroes', wiki: 'Batman', img: 'https://commons.wikimedia.org/wiki/Special:FilePath/Batman%20Cosplay%20at%20NYCC%202017.jpg?width=200' },
-  { id: 'heman', name: 'He-Man', category: 'heroes', wiki: 'He-Man', img: 'https://commons.wikimedia.org/wiki/Special:FilePath/Lucca%20Comics%20%26%20Games%202019%20-%20Cosplay%20He-Man%20and%20Skeletor.jpg?width=200' },
+  { id: 'hulk', name: 'Hulk', category: 'heroes', wiki: 'Hulk' },
+  { id: 'ironman', name: 'Iron Man', category: 'heroes', wiki: 'Iron_Man' },
+  { id: 'thor', name: 'Thor', category: 'heroes', wiki: 'Thor_(Marvel_Comics)' },
+  { id: 'thanos', name: 'Thanos', category: 'heroes', wiki: 'Thanos' },
+  { id: 'cap', name: 'Captain America', category: 'heroes', wiki: 'Captain_America' },
+  { id: 'superman', name: 'Superman', category: 'heroes', wiki: 'Superman' },
+  { id: 'spiderman', name: 'Spider-Man', category: 'heroes', wiki: 'Spider-Man' },
+  { id: 'batman', name: 'Batman', category: 'heroes', wiki: 'Batman' },
+  { id: 'heman', name: 'He-Man', category: 'heroes', wiki: 'He-Man' },
 ];
+
+const LEGACY_WIKI: Record<string, string> = {
+  Mark_Ruffalo: 'Hulk',
+  Robert_Downey_Jr: 'Iron_Man',
+  'Robert_Downey_Jr.': 'Iron_Man',
+  Chris_Hemsworth: 'Thor_(Marvel_Comics)',
+  Josh_Brolin: 'Thanos',
+  Chris_Evans: 'Captain_America',
+  Henry_Cavill: 'Superman',
+  Tom_Holland: 'Spider-Man',
+  Christian_Bale: 'Batman',
+  Dolph_Lundgren: 'He-Man',
+};
 
 const thumbCache = new Map<string, string>();
 
 export function avatarDefOf(wikiOrId: string): AvatarDef {
-  return AVATARS.find((a) => a.wiki === wikiOrId || a.id === wikiOrId) ?? AVATARS[0];
+  const mapped = LEGACY_WIKI[wikiOrId];
+  const key = mapped ?? wikiOrId;
+  return AVATARS.find((a) => a.wiki === key || a.id === key) ?? AVATARS[0];
+}
+
+async function fetchWikiMediaArt(wiki: string): Promise<string | null> {
+  try {
+    const r = await fetch(`https://en.wikipedia.org/api/rest_v1/page/media-list/${encodeURIComponent(wiki)}`);
+    if (!r.ok) return null;
+    const j = await r.json();
+    const item = Array.isArray(j?.items) ? j.items.find((it: { type: string }) => it?.type === 'image') : null;
+    const src = item?.srcset?.[0]?.src ?? null;
+    if (!src) return null;
+    return src.startsWith('http') ? src : `https:${src}`;
+  } catch {
+    return null;
+  }
 }
 
 export async function fetchAvatarThumb(wiki: string): Promise<string | null> {
   const def = avatarDefOf(wiki);
   if (def.img) {
-    thumbCache.set(wiki, def.img);
+    thumbCache.set(def.wiki, def.img);
     return def.img;
   }
-  const hit = thumbCache.get(wiki);
+  const hit = thumbCache.get(def.wiki);
   if (hit) return hit;
   try {
-    const r = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(wiki)}`);
-    if (!r.ok) return def.img ?? null;
-    const j = await r.json();
-    const src = j?.thumbnail?.source ?? j?.originalimage?.source ?? def.img ?? null;
-    if (src) thumbCache.set(wiki, src);
-    return src;
-  } catch {
-    return def.img ?? null;
+    const r = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(def.wiki)}`);
+    if (r.ok) {
+      const j = await r.json();
+      const src = j?.thumbnail?.source ?? j?.originalimage?.source ?? null;
+      if (src) {
+        thumbCache.set(def.wiki, src);
+        return src;
+      }
+    }
+  } catch { /* fall through to media-list */ }
+  const art = await fetchWikiMediaArt(def.wiki);
+  if (art) {
+    thumbCache.set(def.wiki, art);
+    return art;
   }
+  return null;
 }
 
 export function preloadAvatars() {
