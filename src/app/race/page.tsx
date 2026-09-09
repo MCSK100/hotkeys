@@ -5,8 +5,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTypingEngine } from '@/hooks/useTypingEngine';
 import { useRoom } from '@/hooks/useWebSocketSync';
 import { CARS, loadHistory, makeRoomCode, saveResult, sharedQuote, sharedTimedText } from '@/components/race/quotes';
-import { countBeep, engineRev, goBeep } from '@/components/race/sound';
+import { countBeep, engineRev, goBeep, chatPop } from '@/components/race/sound';
 import Car3D from '@/components/race/Car3D';
+import WinnerModal from '@/components/race/WinnerModal';
 import { WEATHERS, RaceLane, WeatherPicker, isWeather, type WeatherId } from '@/components/race/Track';
 import WeatherCanvas from '@/components/race/WeatherCanvas';
 import RoomChat from '@/components/race/RoomChat';
@@ -15,8 +16,26 @@ type Mode = 'practice' | 'multiplayer';
 
 type Racer = {
   id: string; name: string; carId: string; color: string;
-  progress: number; wpm: number; you: boolean; finished: boolean;
+  progress: number; wpm: number; acc: number; you: boolean; finished: boolean;
 };
+
+function RaceLights({ step }: { step: number }) {
+  const on = (i: number) => step <= i;
+  const cols = ['#ef4444', '#f59e0b', '#22c55e'];
+  return (
+    <span className="flex items-center gap-2 rounded-full bg-black/70 px-3 py-2">
+      <style>{`@keyframes lightGlow { 0%,100% { box-shadow: 0 0 6px 2px currentColor; } 50% { box-shadow: 0 0 14px 5px currentColor; } }`}</style>
+      {cols.map((c, i) => (
+        <span key={c} className="h-4 w-4 rounded-full" style={{
+          background: on(i) ? c : 'rgba(255,255,255,.15)',
+          color: c,
+          animation: on(i) ? 'lightGlow .6s ease-in-out infinite' : 'none',
+          opacity: on(i) ? 1 : 0.5,
+        }} />
+      ))}
+    </span>
+  );
+}
 
 const DURATIONS = [0, 3, 5, 10];
 
@@ -50,6 +69,10 @@ export default function RacePage() {
   const [isHost, setIsHost] = useState(false);
   const [copied, setCopied] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [chatPing, setChatPing] = useState(false);
+  const [showWinner, setShowWinner] = useState(false);
+  const winnerDismissed = useRef(false);
+  const prevChatLen = useRef(0);
   const [light, setLight] = useState(false);
   const [history, setHistory] = useState<{ wpm: number; acc: number }[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -184,8 +207,8 @@ export default function RacePage() {
     if (lobbySecs !== null && lobbySecs <= 3 && lobbySecs >= 1 && soundRef.current) countBeep(lobbySecs);
   }, [lobbySecs]);
   useEffect(() => {
-    if (inRoom) send(laneProgress, wpm, phase === 'finished');
-  }, [laneProgress, wpm, phase, inRoom, send]);
+    if (inRoom) send(laneProgress, wpm, phase === 'finished', engine.acc);
+  }, [laneProgress, wpm, phase, inRoom, send, engine.acc]);
 
   useEffect(() => {
     if (phase === 'finished' && !savedRef.current && (mode === 'practice' || inRoom)) {
@@ -233,20 +256,23 @@ export default function RacePage() {
 
   const racers: Racer[] = useMemo(() => {
     if (mode === 'practice') {
-      return [{ id: 'you', name: `${displayName} (YOU)`, carId, color: car.color, progress: laneProgress, wpm: Math.round(wpm), you: true, finished }];
+      return [{ id: 'you', name: `${displayName} (YOU)`, carId, color: car.color, progress: laneProgress, wpm: Math.round(wpm), acc: Math.round(engine.acc * 10) / 10, you: true, finished }];
     }
-    const me: Racer = { id: myId, name: `${displayName} (YOU)`, carId, color: car.color, progress: laneProgress, wpm: Math.round(wpm), you: true, finished };
+    const me: Racer = { id: myId, name: `${displayName} (YOU)`, carId, color: car.color, progress: laneProgress, wpm: Math.round(wpm), acc: Math.round(engine.acc * 10) / 10, you: true, finished };
     if (!inRoom || players.length === 0) return [me];
     const map = new Map<string, Racer>();
     map.set(myId, me);
     for (const p of players) {
-      if (p.id === myId) continue;
+      if (p.id === myId) {
+        map.set(myId, { ...me, acc: me.acc });
+        continue;
+      }
       const c = carOf(p.car);
-      map.set(p.id, { id: p.id, name: p.name, carId: p.car, color: c.color, progress: p.progress, wpm: p.wpm, you: false, finished: p.finished });
+      map.set(p.id, { id: p.id, name: p.name, carId: p.car, color: c.color, progress: p.progress, wpm: p.wpm, acc: p.acc ?? 100, you: false, finished: p.finished });
     }
     return [...map.values()].sort((a, b) => b.progress - a.progress || b.wpm - a.wpm);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, displayName, carId, inRoom, players, myId, laneProgress, wpm, finished, car.color]);
+  }, [mode, displayName, carId, inRoom, players, myId, laneProgress, wpm, finished, car.color, engine.acc]);
 
   const words = useMemo(() => {
     const out: { word: string; start: number }[] = [];
@@ -257,6 +283,35 @@ export default function RacePage() {
   }, [engine.text]);
 
   const myPos = racers.findIndex((r) => r.you) + 1;
+  const allFinished = racers.length > 1 && racers.every((r) => r.finished);
+  const anyFinished = racers.some((r) => r.finished);
+
+  useEffect(() => {
+    if (chat.length > prevChatLen.current) {
+      if (!chatOpen && prevChatLen.current > 0) {
+        if (soundRef.current) chatPop();
+        setChatPing(true);
+        setTimeout(() => setChatPing(false), 1600);
+      }
+    }
+    prevChatLen.current = chat.length;
+  }, [chat.length, chatOpen]);
+
+  useEffect(() => {
+    winnerDismissed.current = false;
+    setShowWinner(false);
+  }, [round]);
+
+  useEffect(() => {
+    if (mode === 'multiplayer' && inRoom && finished && anyFinished && !winnerDismissed.current) {
+      const t = setTimeout(() => setShowWinner(true), 700);
+      return () => clearTimeout(t);
+    }
+    if (!finished) {
+      winnerDismissed.current = false;
+      setShowWinner(false);
+    }
+  }, [mode, inRoom, finished, anyFinished]);
   const linkDur = (inRoom ? roomDuration : mpDuration) || 0;
   const linkWeather = inRoom ? (isWeather(roomWeather) ? roomWeather : 'rain') : mpWeather;
   const inviteLink = roomCode && typeof window !== 'undefined'
@@ -267,6 +322,8 @@ export default function RacePage() {
 
   const resetRound = () => {
     setGo(false);
+    setShowWinner(false);
+    winnerDismissed.current = false;
     savedRef.current = false;
   };
   const createRoom = () => {
@@ -506,8 +563,11 @@ export default function RacePage() {
             </div>
             {lobbySecs !== null ? (
               <div className={`mt-5 rounded-xl border px-4 py-4 text-center ${light ? 'border-black/15 bg-black/[0.03]' : 'border-white/15 bg-white/[0.04]'}`}>
-                <p className="text-6xl font-semibold tabular-nums">{lobbySecs}</p>
-                <p className={`text-[11px] ${faint2}`}>Race starts — get ready to type</p>
+                <div className="flex items-center justify-center gap-3">
+                  <RaceLights step={lobbySecs <= 12 ? 2 : lobbySecs <= 13 ? 1 : lobbySecs <= 14 ? 0 : -1} />
+                  <p className="text-6xl font-semibold tabular-nums">{lobbySecs}</p>
+                </div>
+                <p className={`mt-1 text-[11px] ${faint2}`}>Race starts — get ready to type</p>
               </div>
             ) : (
               <div className="mt-5 flex flex-wrap items-center gap-3">
@@ -556,7 +616,8 @@ export default function RacePage() {
 
             <section className={`relative mt-4 rounded-2xl border p-5 md:p-7 ${light ? 'border-black/10 bg-white' : 'border-white/10 bg-black/50'}`} onClick={smartFocus}>
               {engine.phase === 'countdown' && (
-                <div className={`absolute inset-0 z-10 flex flex-col items-center justify-center rounded-2xl backdrop-blur-[2px] ${light ? 'bg-white/80' : 'bg-black/70'}`}>
+                <div className={`absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-2xl backdrop-blur-[2px] ${light ? 'bg-white/80' : 'bg-black/70'}`}>
+                  <RaceLights step={engine.countdown >= 3 ? 0 : engine.countdown === 2 ? 1 : engine.countdown <= 1 ? 2 : 2} />
                   <p className="text-7xl font-semibold tabular-nums">{engine.countdown > 0 ? engine.countdown : 'GO'}</p>
                   <p className={`text-[11px] ${faint2}`}>Get ready</p>
                 </div>
@@ -646,13 +707,18 @@ export default function RacePage() {
                 {mode === 'multiplayer' && (
                   <div className="mt-4 overflow-x-auto">
                     <table className="w-full text-[12px]">
-                      <thead><tr className={`text-left ${light ? 'text-black/45' : 'text-white/45'}`}><th className="py-2 pr-4 font-medium">POS</th><th className="py-2 pr-4 font-medium">RACER</th><th className="py-2 pr-4 font-medium">WPM</th><th className="py-2 font-medium">PROGRESS</th></tr></thead>
+                      <thead><tr className={`text-left ${light ? 'text-black/45' : 'text-white/45'}`}><th className="py-2 pr-4 font-medium">POS</th><th className="py-2 pr-4 font-medium">RACER</th><th className="py-2 pr-4 font-medium">WPM</th><th className="py-2 pr-4 font-medium">ACCURACY</th><th className="py-2 font-medium">PROGRESS</th></tr></thead>
                       <tbody>
                         {racers.map((r, i) => (
-                          <tr key={r.id} className={`border-t ${light ? 'border-black/10' : 'border-white/10'}`}>
-                            <td className="py-2 pr-4 tabular-nums">0{i + 1}</td>
-                            <td className="py-2 pr-4">{r.name}</td>
+                          <tr key={r.id} className={`border-t ${light ? 'border-black/10' : 'border-white/10'} ${r.you ? (light ? 'bg-black/[0.03]' : 'bg-white/[0.05]') : ''}`}>
+                            <td className="py-2 pr-4 tabular-nums">
+                              <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${i === 0 ? 'bg-amber-400 text-black' : i === 1 ? 'bg-slate-300 text-black' : i === 2 ? 'bg-orange-400 text-black' : (light ? 'bg-black/10 text-black/60' : 'bg-white/10 text-white/60')}`}>
+                                {i === 0 ? '🥇 1st' : i === 1 ? '🥈 2nd' : i === 2 ? '🥉 3rd' : `0${i + 1}`}
+                              </span>
+                            </td>
+                            <td className="py-2 pr-4 font-semibold">{r.name}{r.finished ? ' 🏁' : ''}</td>
                             <td className="py-2 pr-4 tabular-nums">{r.wpm}</td>
+                            <td className={`py-2 pr-4 tabular-nums font-semibold ${r.acc >= 95 ? 'text-emerald-500' : r.acc >= 85 ? 'text-amber-500' : 'text-red-500'}`}>{Math.round(r.acc)}%</td>
                             <td className="py-2 tabular-nums">{Math.round(r.progress * 100)}%</td>
                           </tr>
                         ))}
@@ -680,11 +746,17 @@ export default function RacePage() {
       {inRoom && (
         <RoomChat light={light} open={chatOpen} onClose={() => setChatOpen(false)} messages={chat} myName={displayName} onSend={sendChat} />
       )}
-      {inRoom && !chatOpen && chat.length > 0 && (
-        <button onClick={() => setChatOpen(true)}
-          className={`fixed bottom-5 right-5 z-30 rounded-full px-4 py-2.5 text-[13px] font-semibold shadow-xl ${light ? 'bg-black text-white hover:bg-black/80' : 'bg-white text-black hover:bg-gray-200'}`}>
-          Chat · {chat.length}
+      {inRoom && !chatOpen && (
+        <button onClick={() => { setChatOpen(true); setChatPing(false); }}
+          className={`fixed bottom-5 right-5 z-30 rounded-full px-4 py-2.5 text-[13px] font-semibold shadow-xl ${light ? 'bg-black text-white hover:bg-black/80' : 'bg-white text-black hover:bg-gray-200'}`}
+          style={chatPing ? { animation: 'chatBounce .5s ease-in-out 3' } : undefined}>
+          <style>{`@keyframes chatBounce { 0%,100% { transform: scale(1); } 30% { transform: scale(1.18) rotate(-4deg); } 60% { transform: scale(0.94) rotate(3deg); } }`}</style>
+          <span className="mr-1 inline-block" style={chatPing ? { animation: 'chatBounce .5s ease-in-out 3' } : undefined}>💬</span>
+          Chat{chat.length > 0 ? ` · ${chat.length}` : ''}{chatPing ? ' • new!' : ''}
         </button>
+      )}
+      {showWinner && mode === 'multiplayer' && finished && (
+        <WinnerModal racers={racers} allFinished={allFinished} light={light} soundOn={soundOn} onClose={() => { winnerDismissed.current = true; setShowWinner(false); }} />
       )}
     </main>
   );

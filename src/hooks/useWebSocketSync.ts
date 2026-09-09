@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 const WS_URL = process.env.NEXT_PUBLIC_WS_URL ?? 'ws://localhost:3001';
 
-export type NetPlayer = { id: string; name: string; car: string; progress: number; wpm: number; finished: boolean };
+export type NetPlayer = { id: string; name: string; car: string; progress: number; wpm: number; acc: number; finished: boolean };
 export type ChatMsg = { id: string; name: string; text: string; ts: number };
 
 export function useRoom(roomCode: string | null, name: string, car: string, enabled: boolean) {
@@ -69,27 +69,28 @@ export function useRoom(roomCode: string | null, name: string, car: string, enab
           if (typeof msg.room?.weather === 'string') setRoomWeather(msg.room.weather);
           if (typeof msg.room?.hostId === 'string') setHostId(msg.room.hostId);
           if (typeof msg.room?.status === 'string') setRoomStatus(msg.room.status);
-          const list = (msg.room?.players ?? []).map((p: { id: string; profile?: { name?: string; car?: string }; progress?: { progressPercent?: number; currentWpm?: number } }) => ({
+          const list = (msg.room?.players ?? []).map((p: { id: string; profile?: { name?: string; car?: string }; progress?: { progressPercent?: number; currentWpm?: number; accuracy?: number; finished?: boolean } }) => ({
             id: p.id,
             name: p.id === myId ? `${identity.name} (YOU)` : (p.profile?.name ?? 'RACER'),
             car: p.id === myId ? identity.car : (p.profile?.car ?? 'volt'),
             progress: p.progress?.progressPercent ?? 0,
             wpm: Math.round(p.progress?.currentWpm ?? 0),
-            finished: (p.progress?.progressPercent ?? 0) >= 1,
+            acc: Math.round((p.progress?.accuracy ?? 100) * 10) / 10,
+            finished: Boolean(p.progress?.finished) || (p.progress?.progressPercent ?? 0) >= 1,
           }));
           setPlayers(list);
         }
         if (msg.type === 'PROGRESS_BATCH') {
           setPlayers((prev) => {
             const known = new Map(prev.map((p) => [p.id, p]));
-            return (msg.payloads ?? []).map((p: { pid: string; p: number; w: number }) => {
+            return (msg.payloads ?? []).map((p: { pid: string; p: number; w: number; a?: number; f?: number }) => {
               const old = known.get(p.pid);
               const mine = p.pid === myId;
               return {
                 id: p.pid,
                 name: mine ? `${identity.name} (YOU)` : (old?.name ?? p.pid.slice(0, 6)),
                 car: mine ? identity.car : (old?.car ?? 'volt'),
-                progress: p.p ?? 0, wpm: Math.round(p.w ?? 0), finished: (p.p ?? 0) >= 1,
+                progress: p.p ?? 0, wpm: Math.round(p.w ?? 0), acc: Math.round((p.a ?? old?.acc ?? 100) * 10) / 10, finished: Boolean(p.f) || (p.p ?? 0) >= 1,
               };
             });
           });
@@ -129,7 +130,7 @@ export function useRoom(roomCode: string | null, name: string, car: string, enab
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, roomCode]);
 
-  const send = useCallback((progress: number, wpm: number, finished: boolean) => {
+  const send = useCallback((progress: number, wpm: number, finished: boolean, acc = 100) => {
     const ws = wsRef.current;
     if (!ws || ws.readyState !== WebSocket.OPEN) return;
     const t = performance.now();
@@ -137,7 +138,7 @@ export function useRoom(roomCode: string | null, name: string, car: string, enab
     lastSend.current = t;
     ws.send(JSON.stringify({
       type: 'PROGRESS',
-      payload: { playerId: idRef.current, charIndex: Math.round(progress * 1000), currentWpm: Math.round(wpm), progressPercent: progress, errorState: false, finished },
+      payload: { playerId: idRef.current, charIndex: Math.round(progress * 1000), currentWpm: Math.round(wpm), progressPercent: progress, accuracy: acc, errorState: false, finished },
     }));
     if (finished) ws.send(JSON.stringify({ type: 'FINISH', payload: { playerId: idRef.current } }));
   }, []);

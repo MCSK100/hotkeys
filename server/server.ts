@@ -4,7 +4,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 const PORT = Number(process.env.PORT ?? 3001);
 const LOBBY_WAIT = 15;
 
-type Prog = { progressPercent: number; currentWpm: number; finished?: boolean };
+type Prog = { progressPercent: number; currentWpm: number; accuracy: number; finished?: boolean };
 type Player = { id: string; name: string; car: string; progress: Prog; socket: WebSocket };
 const WEATHERS = ['rain', 'desert', 'forest', 'mountain'];
 
@@ -60,7 +60,7 @@ function startLobbyCountdown(room: Room) {
       room.lobbyN = null;
       room.status = 'racing';
       for (const p of room.players.values()) {
-        p.progress = { progressPercent: 0, currentWpm: 0 };
+        p.progress = { progressPercent: 0, currentWpm: 0, accuracy: 100 };
       }
       room.round += 1;
       broadcast(room, { type: 'RACE_START', startTime: Date.now(), duration: room.durationMin, weather: room.weather, round: room.round });
@@ -113,7 +113,7 @@ server.on('connection', (socket) => {
         const room = getRoom(code);
         roomCode = code;
         const existing = room.players.get(playerId);
-        room.players.set(playerId, { id: playerId, name, car, progress: existing?.progress ?? { progressPercent: 0, currentWpm: 0 }, socket });
+        room.players.set(playerId, { id: playerId, name, car, progress: existing?.progress ?? { progressPercent: 0, currentWpm: 0, accuracy: 100 }, socket });
         // First driver in the room becomes the host (room owner).
         if (!room.hostId || !room.players.has(room.hostId)) room.hostId = playerId;
         socket.send(JSON.stringify({ type: 'ROOM_STATE', room: snapshot(room) }));
@@ -154,12 +154,13 @@ server.on('connection', (socket) => {
         pl.progress = {
           progressPercent: Number(msg.payload?.progressPercent ?? 0),
           currentWpm: Number(msg.payload?.currentWpm ?? 0),
+          accuracy: Number(msg.payload?.accuracy ?? 100),
           finished: Boolean(msg.payload?.finished),
         };
         broadcast(room, {
           type: 'PROGRESS_BATCH',
           payloads: [...room.players.values()].map((p) => ({
-            pid: p.id, c: 0, w: p.progress.currentWpm, p: p.progress.progressPercent, e: false,
+            pid: p.id, c: 0, w: p.progress.currentWpm, p: p.progress.progressPercent, a: p.progress.accuracy ?? 100, f: p.progress.finished ? 1 : 0, e: false,
           })),
         });
       }
@@ -185,11 +186,13 @@ server.on('connection', (socket) => {
         if (!roomCode) return;
         const room = rooms.get(roomCode);
         if (!room) return;
-        const allDone = [...room.players.values()].length > 0 &&
-          [...room.players.values()].every((p) => (p.progress.progressPercent ?? 0) >= 1);
+        const list = [...room.players.values()];
+        const allDone = list.length > 0 &&
+          list.every((p) => p.progress.finished || (p.progress.progressPercent ?? 0) >= 1);
         if (allDone) {
           room.status = 'finished';
           broadcast(room, { type: 'RACE_END' });
+          broadcast(room, { type: 'ROOM_STATE', room: snapshot(room) });
         }
       }
     } catch {
