@@ -73,11 +73,6 @@ async function fetchWikiMediaArt(wiki: string): Promise<string | null> {
   }
 }
 
-function upscaleWikiThumb(src: string, width: number): string {
-  if (!src.includes('/thumb/')) return src;
-  return src.replace(/\/\d+px-/, `/${width}px-`);
-}
-
 export async function fetchAvatarThumb(wiki: string): Promise<string | null> {
   const def = avatarDefOf(wiki);
   if (def.img) {
@@ -90,17 +85,7 @@ export async function fetchAvatarThumb(wiki: string): Promise<string | null> {
     const r = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(def.wiki)}`);
     if (r.ok) {
       const j = await r.json();
-      const t = j?.thumbnail;
-      const o = j?.originalimage;
-      let src: string | null = null;
-      if (o?.source && o.width && o.width <= 640) {
-        src = o.source;
-      } else if (t?.source) {
-        const target = Math.min(640, o?.width ?? t?.width ?? 320);
-        src = upscaleWikiThumb(t.source, target);
-      } else if (o?.source) {
-        src = o.source;
-      }
+      const src = j?.thumbnail?.source ?? j?.originalimage?.source ?? null;
       if (src) {
         thumbCache.set(def.wiki, src);
         return src;
