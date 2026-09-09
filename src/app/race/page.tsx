@@ -73,7 +73,7 @@ export default function RacePage() {
   const [name, setName] = useState('');
   const [nameTouched, setNameTouched] = useState(false);
   const [carId, setCarId] = useState('volt');
-  const [avatar, setAvatar] = useState('Vijay_(actor)');
+  const [avatar, setAvatar] = useState('');
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [roomCode, setRoomCode] = useState<string | null>(null);
   const [inviteCode, setInviteCode] = useState<string | null>(null);
@@ -447,7 +447,7 @@ export default function RacePage() {
           <section className={`mt-4 rounded-2xl border p-4 ${card}`}>
             <div className="flex flex-wrap items-center gap-4">
               <span className="flex items-center gap-2">
-                <button onClick={() => setAvatarOpen(true)} title="Pick avatar" aria-label="Pick avatar" className="shrink-0 rounded-full transition hover:scale-105">
+                <button onClick={() => setAvatarOpen(true)} title="Choose avatar" aria-label="Choose avatar" className="shrink-0 rounded-full transition hover:scale-105">
                   <AvatarImage wiki={avatar} size={36} />
                 </button>
                 <label className="flex items-center gap-2">
@@ -480,7 +480,7 @@ export default function RacePage() {
             )}
             <p className={`text-[11px] font-medium ${muted}`}>1 · Driver name + avatar</p>
             <div className="mt-2 flex items-center gap-2">
-              <button onClick={() => setAvatarOpen(true)} title="Pick avatar" aria-label="Pick avatar" className="shrink-0 rounded-full transition hover:scale-105">
+              <button onClick={() => setAvatarOpen(true)} title="Choose avatar" aria-label="Choose avatar" className="shrink-0 rounded-full transition hover:scale-105">
                 <AvatarImage wiki={avatar} size={42} />
               </button>
               <input value={name} data-name="1" maxLength={14}

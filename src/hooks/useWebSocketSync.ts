@@ -73,7 +73,7 @@ export function useRoom(roomCode: string | null, name: string, car: string, avat
             id: p.id,
             name: p.id === myId ? `${identity.name} (YOU)` : (p.profile?.name ?? 'RACER'),
             car: p.id === myId ? identity.car : (p.profile?.car ?? 'volt'),
-            avatar: p.id === myId ? identity.avatar : (p.profile?.avatar ?? 'Vijay_(actor)'),
+            avatar: p.id === myId ? identity.avatar : (p.profile?.avatar ?? ''),
             progress: p.progress?.progressPercent ?? 0,
             wpm: Math.round(p.progress?.currentWpm ?? 0),
             acc: Math.round((p.progress?.accuracy ?? 100) * 10) / 10,
@@ -91,7 +91,7 @@ export function useRoom(roomCode: string | null, name: string, car: string, avat
                 id: p.pid,
                 name: mine ? `${identity.name} (YOU)` : (old?.name ?? p.pid.slice(0, 6)),
                 car: mine ? identity.car : (old?.car ?? 'volt'),
-                avatar: mine ? identity.avatar : (p.av ?? old?.avatar ?? 'Vijay_(actor)'),
+                avatar: mine ? identity.avatar : (p.av ?? old?.avatar ?? ''),
                 progress: p.p ?? 0, wpm: Math.round(p.w ?? 0), acc: Math.round((p.a ?? old?.acc ?? 100) * 10) / 10, finished: Boolean(p.f) || (p.p ?? 0) >= 1,
               };
             });

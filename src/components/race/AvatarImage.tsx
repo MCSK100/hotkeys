@@ -3,23 +3,33 @@
 import { useEffect, useState } from 'react';
 import { avatarDefOf, fetchAvatarThumb } from './avatars';
 
+function UploadPlaceholder({ size, ring }: { size: number; ring?: string }) {
+  return (
+    <span title="Choose avatar" className="flex shrink-0 cursor-pointer items-center justify-center rounded-full border border-dashed border-white/30 bg-white/[0.06] text-white/70 transition hover:scale-105 hover:border-white/60 hover:text-white"
+      style={{ width: size, height: size, border: ring ? `2px solid ${ring}` : undefined }}>
+      <svg width={size * 0.45} height={size * 0.45} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+        <polyline points="17 8 12 3 7 8" />
+        <line x1="12" y1="3" x2="12" y2="15" />
+      </svg>
+    </span>
+  );
+}
+
 export default function AvatarImage({ wiki, size = 28, ring }: { wiki: string; size?: number; ring?: string }) {
   const def = avatarDefOf(wiki);
   const [src, setSrc] = useState<string | null>(null);
   useEffect(() => {
+    if (!wiki) return;
     let live = true;
     void fetchAvatarThumb(def.wiki).then((s) => { if (live) setSrc(s); });
     return () => { live = false; };
-  }, [def.wiki]);
+  }, [def.wiki, wiki]);
+  if (!wiki) return <UploadPlaceholder size={size} ring={ring} />;
   if (src) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={src} alt={def.name} title={def.name} loading="lazy" referrerPolicy="no-referrer"
-      className="shrink-0 rounded-full object-cover" style={{ width: size, height: size, objectPosition: '50% 18%', border: ring ? `2px solid ${ring}` : undefined, background: '#222' }} />;
+    return <img src={src} alt={def.name} title="Choose avatar" loading="lazy" referrerPolicy="no-referrer"
+      className="shrink-0 cursor-pointer rounded-full object-cover transition hover:scale-105" style={{ width: size, height: size, objectPosition: '50% 18%', border: ring ? `2px solid ${ring}` : undefined, background: '#222' }} />;
   }
-  return (
-    <span title={def.name} className="flex shrink-0 items-center justify-center rounded-full bg-white/15 text-[11px] font-bold text-white"
-      style={{ width: size, height: size, border: ring ? `2px solid ${ring}` : undefined }}>
-      {def.name.slice(0, 1)}
-    </span>
-  );
+  return <UploadPlaceholder size={size} ring={ring} />;
 }

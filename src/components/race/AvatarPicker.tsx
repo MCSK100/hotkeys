@@ -40,7 +40,6 @@ export default function AvatarPicker({ value, light, onPick, onClose }: {
             </button>
           ))}
         </div>
-        <p className={`mt-2 text-[10px] ${light ? 'text-black/45' : 'text-white/45'}`}>Photos load live from Wikipedia.</p>
       </div>
     </div>
   );
