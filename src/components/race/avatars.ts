@@ -13,8 +13,8 @@ export const AVATARS: AvatarDef[] = [
   { id: 'rajini', name: 'Rajini', category: 'actors', wiki: 'Rajinikanth' },
   { id: 'ajith', name: 'Ajith', category: 'actors', wiki: 'Ajith_Kumar' },
   { id: 'kamal', name: 'Kamal', category: 'actors', wiki: 'Kamal_Haasan' },
-  { id: 'vikram', name: 'Vikram', category: 'actors', wiki: 'Vikram_(actor)', img: 'https://media.themoviedb.org/t/p/w300_and_h450_face/o11aBHj4gFkTPgh6zsLHPq67b0b.jpg' },
-  { id: 'pradeep', name: 'Pradeep Ranganathan', category: 'actors', wiki: 'Pradeep_Ranganathan', img: 'https://media.themoviedb.org/t/p/w300_and_h450_face/9xihfKNyRbDtiV6p2iB1FRcNdNL.jpg' },
+  { id: 'vikram', name: 'Vikram', category: 'actors', wiki: 'Vikram_(actor)', img: 'https://media.themoviedb.org/t/p/w600_and_h900_face/o11aBHj4gFkTPgh6zsLHPq67b0b.jpg' },
+  { id: 'pradeep', name: 'Pradeep Ranganathan', category: 'actors', wiki: 'Pradeep_Ranganathan', img: 'https://media.themoviedb.org/t/p/w600_and_h900_face/9xihfKNyRbDtiV6p2iB1FRcNdNL.jpg' },
   { id: 'dhanush', name: 'Dhanush', category: 'actors', wiki: 'Dhanush' },
   { id: 'suriya', name: 'Suriya', category: 'actors', wiki: 'Suriya' },
   { id: 'stalin', name: 'M.K. Stalin', category: 'leaders', wiki: 'M._K._Stalin' },
@@ -64,12 +64,18 @@ async function fetchWikiMediaArt(wiki: string): Promise<string | null> {
     if (!r.ok) return null;
     const j = await r.json();
     const item = Array.isArray(j?.items) ? j.items.find((it: { type: string }) => it?.type === 'image') : null;
-    const src = item?.srcset?.[0]?.src ?? null;
+    const set = item?.srcset;
+    const src = Array.isArray(set) && set.length > 0 ? set[set.length - 1]?.src ?? set[0]?.src : null;
     if (!src) return null;
-    return src.startsWith('http') ? src : `https:${src}`;
+    return upscaleWikiThumb(src.startsWith('http') ? src : `https:${src}`);
   } catch {
     return null;
   }
+}
+
+function upscaleWikiThumb(src: string): string {
+  if (!src.includes('/thumb/')) return src;
+  return src.replace(/\/\d+px-/, '/640px-');
 }
 
 export async function fetchAvatarThumb(wiki: string): Promise<string | null> {
@@ -84,7 +90,8 @@ export async function fetchAvatarThumb(wiki: string): Promise<string | null> {
     const r = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(def.wiki)}`);
     if (r.ok) {
       const j = await r.json();
-      const src = j?.thumbnail?.source ?? j?.originalimage?.source ?? null;
+      const raw = j?.thumbnail?.source ?? j?.originalimage?.source ?? null;
+      const src = raw ? upscaleWikiThumb(raw) : null;
       if (src) {
         thumbCache.set(def.wiki, src);
         return src;
