@@ -106,7 +106,7 @@ export default function RacePage() {
 
   const car = carOf(carId);
   const inRoom = mode === 'multiplayer' && joined && !!roomCode;
-  const { players, chat, sendChat, round, connected, lobbySecs, go, myId, hostId, roomStatus, send, startRace, setGo, roomDuration, setDuration: pushDuration, roomWeather, setWeather: pushWeather } = useRoom(roomCode, name, carId, avatar, inRoom);
+  const { players, chat, sendChat, round, connected, lobbySecs, go, myId, hostId, roomStatus, send, startRace, startRematch, setGo, roomDuration, setDuration: pushDuration, roomWeather, setWeather: pushWeather } = useRoom(roomCode, name, carId, avatar, inRoom);
   const raceLive = roomStatus === 'countdown' || roomStatus === 'racing';
   const host = hostId ? myId === hostId : isHost;
   const activeWeather = WEATHERS[mode === 'practice' ? weather : isWeather(roomWeather) ? (roomWeather as WeatherId) : 'rain'];
@@ -381,10 +381,11 @@ export default function RacePage() {
     window.history.replaceState(null, '', `/race?room=${c}`);
     setTimeout(focus, 400);
   };
-  const rematch = () => {
+  const doRematch = () => {
     resetRound();
-    startRace();
+    startRematch();
   };
+  const rematchModal = inRoom && lobbySecs !== null && lobbySecs <= 3 && round > 0;
 
   const showSetup = mode === 'multiplayer' && !joined;
   const showLobby = mode === 'multiplayer' && joined && engine.phase === 'lobby' && !go;

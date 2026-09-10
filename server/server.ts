@@ -3,6 +3,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 
 const PORT = Number(process.env.PORT ?? 3001);
 const LOBBY_WAIT = 15;
+const REMATCH_WAIT = 3;
 
 type Prog = { progressPercent: number; currentWpm: number; accuracy: number; finished?: boolean };
 type Player = { id: string; name: string; car: string; avatar: string; progress: Prog; socket: WebSocket };
@@ -50,6 +51,32 @@ function startLobbyCountdown(room: Room) {
   if (room.timer || room.status === 'racing') return;
   room.status = 'countdown';
   room.lobbyN = LOBBY_WAIT;
+  broadcast(room, { type: 'LOBBY_COUNTDOWN', value: room.lobbyN });
+  room.timer = setInterval(() => {
+    if (room.lobbyN === null) return;
+    room.lobbyN -= 1;
+    if (room.lobbyN <= 0) {
+      if (room.timer) clearInterval(room.timer);
+      room.timer = null;
+      room.lobbyN = null;
+      room.status = 'racing';
+      for (const p of room.players.values()) {
+        p.progress = { progressPercent: 0, currentWpm: 0, accuracy: 100 };
+      }
+      room.round += 1;
+      broadcast(room, { type: 'RACE_START', startTime: Date.now(), duration: room.durationMin, weather: room.weather, round: room.round });
+      broadcast(room, { type: 'ROOM_STATE', room: snapshot(room) });
+    } else {
+      broadcast(room, { type: 'LOBBY_COUNTDOWN', value: room.lobbyN });
+    }
+  }, 1000);
+}
+
+// Quick 3s rematch: same grid, fresh round (new text), short countdown.
+function startRematchCountdown(room: Room) {
+  if (room.timer || room.status === 'racing' || room.status === 'countdown') return;
+  room.status = 'countdown';
+  room.lobbyN = REMATCH_WAIT;
   broadcast(room, { type: 'LOBBY_COUNTDOWN', value: room.lobbyN });
   room.timer = setInterval(() => {
     if (room.lobbyN === null) return;
@@ -127,6 +154,13 @@ server.on('connection', (socket) => {
         if (!room || room.players.size === 0) return;
         if (playerId !== room.hostId) return;
         startLobbyCountdown(room);
+      }
+      if (msg.type === 'HOST_REMATCH') {
+        if (!roomCode || !playerId) return;
+        const room = rooms.get(roomCode);
+        if (!room || room.players.size === 0) return;
+        if (playerId !== room.hostId) return;
+        startRematchCountdown(room);
       }
       if (msg.type === 'SET_DURATION') {
         if (!roomCode || !playerId) return;

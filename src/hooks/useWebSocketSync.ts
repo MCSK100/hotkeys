@@ -151,6 +151,12 @@ export function useRoom(roomCode: string | null, name: string, car: string, avat
     ws.send(JSON.stringify({ type: 'HOST_START', payload: {} }));
   }, []);
 
+  const startRematch = useCallback(() => {
+    const ws = wsRef.current;
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    ws.send(JSON.stringify({ type: 'HOST_REMATCH', payload: {} }));
+  }, []);
+
   const setDuration = useCallback((minutes: number) => {
     const ws = wsRef.current;
     if (!ws || ws.readyState !== WebSocket.OPEN) return;
@@ -171,5 +177,5 @@ export function useRoom(roomCode: string | null, name: string, car: string, avat
     ws.send(JSON.stringify({ type: 'CHAT', payload: { text: clean, name: identityRef.current.name } }));
   }, []);
 
-  return { players, chat, sendChat, round, connected, lobbySecs, go, myId: idRef.current, hostId, roomStatus, send, startRace, setGo, roomDuration, setDuration, roomWeather, setWeather };
+  return { players, chat, sendChat, round, connected, lobbySecs, go, myId: idRef.current, hostId, roomStatus, send, startRace, startRematch, setGo, roomDuration, setDuration, roomWeather, setWeather };
 }
