@@ -131,8 +131,8 @@ export default function RacePage() {
     ? 'rounded-full border border-white/60 bg-white/45 backdrop-blur-md px-5 py-2.5 text-[13px] font-semibold text-black transition hover:bg-white/60 disabled:opacity-40'
     : 'rounded-full border border-white/20 bg-white/[0.06] backdrop-blur-md px-5 py-2.5 text-[13px] font-semibold text-white/90 transition hover:bg-white/[0.12] disabled:opacity-40';
   const card = light
-    ? 'border-white/60 bg-white/45 backdrop-blur-2xl shadow-[0_8px_24px_rgba(0,0,0,0.08)]'
-    : 'border-white/15 bg-black/70 backdrop-blur-2xl shadow-[0_8px_24px_rgba(0,0,0,0.35)]';
+    ? 'border-white/60 bg-white/45 backdrop-blur-3xl shadow-[0_8px_24px_rgba(0,0,0,0.08)]'
+    : 'border-white/15 bg-black/70 backdrop-blur-3xl shadow-[0_8px_24px_rgba(0,0,0,0.35)]';
   const muted = light ? 'text-black/50' : 'text-white/50';
   const faint = light ? 'text-black/40' : 'text-white/40';
   const faint2 = light ? 'text-black/60' : 'text-white/60';
@@ -659,7 +659,7 @@ export default function RacePage() {
 
         {showTrack && (
           <>
-            <section className={`relative z-10 mt-4 overflow-hidden rounded-2xl border backdrop-blur-2xl ${light ? 'border-white/60 bg-white/45' : 'border-white/15 bg-black/70'}`}>
+            <section className={`relative z-10 mt-4 overflow-hidden rounded-2xl border backdrop-blur-3xl ${light ? 'border-white/60 bg-white/45' : 'border-white/15 bg-black/70'}`}>
               <WeatherCanvas weather={activeWeather.id} light={light} />
               <div className={`relative z-[6] flex items-center justify-between gap-2 border-b px-4 py-2.5 text-[11px] ${light ? 'border-black/10 text-black/60' : 'border-white/10 text-white/55'}`}>
                 <span className="truncate font-medium">
