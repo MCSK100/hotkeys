@@ -8,7 +8,7 @@ export default function FinalCTA() {
   return (
     <section className="film-grain vignette relative flex min-h-[92svh] flex-col justify-center overflow-clip">
       <div className="absolute inset-0">
-        <VideoHero src="/car-2.mp4" />
+        <VideoHero src="/videos/racing-night.mp4" />
         <div className="absolute inset-0 bg-void/60" />
         <div className="absolute inset-0 bg-gradient-to-t from-void via-transparent to-void" />
       </div>
