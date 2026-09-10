@@ -773,7 +773,7 @@ export default function RacePage() {
                     {mode === 'practice' ? (
                       <button onClick={() => { savedRef.current = false; engine.startTimed(duration); setTimeout(focus, 350); }} className={primaryBtn}>Race again →</button>
                     ) : host ? (
-                      <button onClick={rematch} className={primaryBtn}>Rematch · 15s →</button>
+                      <button onClick={doRematch} className={primaryBtn}>Rematch →</button>
                     ) : (
                       <span className={`rounded-xl border px-4 py-2.5 text-[12px] ${light ? 'border-black/15 bg-black/[0.03] text-black/60' : 'border-white/15 bg-white/[0.04] text-white/60'}`}>Waiting for host rematch…</span>
                     )}
@@ -831,8 +831,19 @@ export default function RacePage() {
           Chat{chat.length > 0 ? ` · ${chat.length}` : ''}{chatPing ? ' • new!' : ''}
         </button>
       )}
-      {showWinner && mode === 'multiplayer' && allFinished && (
+      {showWinner && mode === 'multiplayer' && allFinished && lobbySecs === null && (
         <WinnerModal racers={racers} allFinished={allFinished} light={light} soundOn={soundOn} onClose={() => { winnerDismissed.current = true; setShowWinner(false); }} />
+      )}
+      {rematchModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Rematch starting">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
+          <div className={`relative w-full max-w-xs rounded-3xl border p-8 text-center shadow-2xl ${light ? 'border-white/60 bg-white/60 backdrop-blur-3xl text-black' : 'border-white/15 bg-black/60 backdrop-blur-3xl text-white'}`}>
+            <p className={`font-game text-[13px] font-bold tracking-[0.25em] ${light ? 'text-blue-700' : 'text-acid'}`}>REMATCH</p>
+            <p className="mt-2 font-game text-sm font-bold tracking-wide opacity-80">Same grid · new text</p>
+            <p className={`mt-4 font-game text-8xl font-black tabular-nums ${light ? 'text-black' : 'text-acid'}`} key={lobbySecs}>{lobbySecs}</p>
+            <p className={`mt-3 font-game text-[12px] font-bold tracking-widest opacity-70`}>{players.length} RACER{players.length === 1 ? '' : 'S'} READY</p>
+          </div>
+        </div>
       )}
       {avatarOpen && (
         <AvatarPicker value={avatar} light={light} onPick={pickAvatar} onClose={() => setAvatarOpen(false)} />
