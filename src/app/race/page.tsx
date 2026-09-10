@@ -410,6 +410,10 @@ export default function RacePage() {
             <img src="/hotkeyslogo.png" alt="HotKeys" className="h-9 w-auto object-contain" />
           </Link>
           <div className="flex items-center gap-2 text-[12px] font-medium">
+            <Link href="/" aria-label="Home"
+              className={`rounded-full border px-4 py-1.5 font-game text-[12px] font-bold tracking-wider transition ${light ? 'border-black/15 bg-white/40 text-black/70 hover:bg-white/60 hover:text-black' : 'border-white/15 bg-white/[0.06] text-white/70 hover:bg-white/[0.12] hover:text-white'}`}>
+              ⌂ HOME
+            </Link>
             <button onClick={toggleTheme} aria-label={light ? 'Switch to dark mode' : 'Switch to light mode'} title={light ? 'Switch to dark mode' : 'Switch to light mode'}
               className={`relative h-7 w-[54px] rounded-full border transition-colors duration-300 ${light ? 'border-black/15 bg-black/10' : 'border-white/15 bg-white/10'}`}>
               <span className={`absolute top-[2px] flex h-[22px] w-[22px] items-center justify-center rounded-full shadow transition-all duration-300 ${light ? 'left-[28px] bg-black' : 'left-[2px] bg-white'}`}>
@@ -454,6 +458,7 @@ export default function RacePage() {
       </div>
 
       <div className="relative z-10 mx-auto max-w-6xl px-4 py-6">
+        {!inRoom && (
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => { setMode('practice'); setJoined(false); window.history.replaceState(null, '', '/race?mode=practice'); }}
@@ -479,6 +484,7 @@ export default function RacePage() {
             </span>
           )}
         </div>
+        )}
 
         {mode === 'practice' && (
           <section className={`mt-4 rounded-2xl border p-4 ${card}`}>
