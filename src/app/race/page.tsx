@@ -128,16 +128,16 @@ export default function RacePage() {
     ? 'rounded-xl bg-black px-5 py-2.5 text-[13px] font-semibold text-white transition hover:bg-black/80 disabled:opacity-40'
     : 'rounded-xl bg-white px-5 py-2.5 text-[13px] font-semibold text-black transition hover:bg-gray-200 disabled:opacity-40';
   const ghostBtn = light
-    ? 'rounded-full border border-white/40 bg-white/20 backdrop-blur-md px-5 py-2.5 text-[13px] font-semibold text-black transition hover:bg-white/30 disabled:opacity-40'
+    ? 'rounded-full border border-white/60 bg-white/45 backdrop-blur-md px-5 py-2.5 text-[13px] font-semibold text-black transition hover:bg-white/60 disabled:opacity-40'
     : 'rounded-full border border-white/20 bg-white/[0.06] backdrop-blur-md px-5 py-2.5 text-[13px] font-semibold text-white/90 transition hover:bg-white/[0.12] disabled:opacity-40';
   const card = light
-    ? 'border-white/50 bg-white/10 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.08)]'
+    ? 'border-white/60 bg-white/45 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.08)]'
     : 'border-white/15 bg-black/25 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.35)]';
   const muted = light ? 'text-black/50' : 'text-white/50';
   const faint = light ? 'text-black/40' : 'text-white/40';
   const faint2 = light ? 'text-black/60' : 'text-white/60';
   const inputCls = light
-    ? 'border-white/40 bg-white/20 backdrop-blur-md text-black placeholder:text-black/40 focus:border-black/50'
+    ? 'border-white/60 bg-white/45 backdrop-blur-md text-black placeholder:text-black/40 focus:border-black/50'
     : 'border-white/20 bg-white/[0.06] backdrop-blur-md text-white placeholder:text-white/40 focus:border-white/60';
   const pickActive = light ? 'border-black bg-black text-white' : 'border-white bg-white text-black';
   const pickIdle = light ? 'border-black/15 text-black/60 hover:border-black/40 hover:text-black' : 'border-white/15 text-white/60 hover:border-white/40 hover:text-white';
@@ -391,7 +391,7 @@ export default function RacePage() {
     <main className={`relative min-h-screen font-body ${light ? 'text-[#14171c]' : 'text-[#eceef1]'}`} onClick={smartFocus}>
       <div aria-hidden className="pointer-events-none fixed inset-0 z-0">
         <video autoPlay muted loop playsInline preload="auto" src="/lobby-video.mp4" className="h-full w-full object-cover" />
-        <div className={`absolute inset-0 ${light ? 'bg-white/55' : 'bg-black/55'}`} />
+        <div className={`absolute inset-0 backdrop-blur-[3px] ${light ? 'bg-white/60' : 'bg-black/55'}`} />
         <div className={`absolute inset-0 ${light ? 'bg-gradient-to-b from-white/20 via-transparent to-white/40' : 'bg-gradient-to-b from-black/50 via-transparent to-black/70'}`} />
       </div>
       <div className="sticky top-3 z-20 px-4">
@@ -630,7 +630,7 @@ export default function RacePage() {
 
         {showTrack && (
           <>
-            <section className={`relative z-10 mt-4 overflow-hidden rounded-2xl border backdrop-blur-md ${light ? 'border-white/50 bg-white/10' : 'border-white/15 bg-black/25'}`}>
+            <section className={`relative z-10 mt-4 overflow-hidden rounded-2xl border backdrop-blur-md ${light ? 'border-white/60 bg-white/45' : 'border-white/15 bg-black/25'}`}>
               <WeatherCanvas weather={activeWeather.id} light={light} />
               <div className={`relative z-[6] flex items-center justify-between gap-2 border-b px-4 py-2.5 text-[11px] ${light ? 'border-black/10 text-black/60' : 'border-white/10 text-white/55'}`}>
                 <span className="truncate font-medium">
@@ -658,7 +658,7 @@ export default function RacePage() {
               </div>
             </section>
 
-            <section className={`relative z-10 mt-4 rounded-2xl border p-5 backdrop-blur-md md:p-7 ${light ? 'border-white/50 bg-white/10' : 'border-white/15 bg-black/25'}`} onClick={smartFocus}>
+            <section className={`relative z-10 mt-4 rounded-2xl border p-5 backdrop-blur-md md:p-7 ${light ? 'border-white/60 bg-white/45' : 'border-white/15 bg-black/25'}`} onClick={smartFocus}>
               {engine.phase === 'countdown' && (
                 <div className={`absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-2xl backdrop-blur-[2px] ${light ? 'bg-white/80' : 'bg-black/70'}`}>
                   <RaceLights remaining={engine.countdown} large />
