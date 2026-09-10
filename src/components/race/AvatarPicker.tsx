@@ -1,41 +1,13 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AVATARS, AVATAR_CATEGORIES, preloadAvatars, type AvatarCategory } from './avatars';
 import AvatarImage from './AvatarImage';
-
-function fileToLogoDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      try {
-        const S = 128;
-        const c = document.createElement('canvas');
-        c.width = S; c.height = S;
-        const g = c.getContext('2d');
-        if (!g) { URL.revokeObjectURL(url); resolve(url); return; }
-        const scale = Math.max(S / img.width, S / img.height);
-        const w = img.width * scale, h = img.height * scale;
-        g.fillStyle = '#222';
-        g.fillRect(0, 0, S, S);
-        g.drawImage(img, (S - w) / 2, (S - h) / 2, w, h);
-        URL.revokeObjectURL(url);
-        resolve(c.toDataURL('image/jpeg', 0.82));
-      } catch (e) { URL.revokeObjectURL(url); reject(e); }
-    };
-    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('bad image')); };
-    img.src = url;
-  });
-}
 
 export default function AvatarPicker({ value, light, onPick, onClose }: {
   value: string; light?: boolean; onPick: (wiki: string) => void; onClose: () => void;
 }) {
   const [cat, setCat] = useState<AvatarCategory>('actors');
-  const [uploading, setUploading] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
-  const isCustom = !!value && (value.startsWith('data:') || value.startsWith('blob:') || /^https?:\/\//i.test(value));
   useEffect(() => { preloadAvatars(); }, []);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -51,28 +23,6 @@ export default function AvatarPicker({ value, light, onPick, onClose }: {
           <p className="font-game text-[17px] font-bold tracking-wide">🎮 PICK YOUR AVATAR</p>
           <button onClick={onClose} aria-label="Close" className={`rounded-lg border px-2 py-1 text-[12px] ${light ? 'border-black/15' : 'border-white/15'}`}>✕</button>
         </div>
-        <button onClick={() => fileRef.current?.click()} disabled={uploading}
-          className={`mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl border px-3 py-2 font-game text-[12px] font-bold uppercase tracking-widest transition disabled:opacity-60 ${light ? 'border-black/15 bg-black/[0.04] text-black hover:bg-black/[0.07]' : 'border-white/15 bg-white/[0.05] text-white hover:bg-white/[0.08]'}`}>
-          <span className="text-sm">📤</span> {uploading ? 'UPLOADING…' : '⬆ UPLOAD YOUR LOGO'}
-        </button>
-        <input ref={fileRef} type="file" accept="image/*" className="hidden" aria-label="Upload logo"
-          onChange={async (e) => {
-            const f = e.target.files?.[0];
-            e.target.value = '';
-            if (!f) return;
-            setUploading(true);
-            try {
-              const dataUrl = await fileToLogoDataUrl(f);
-              onPick(dataUrl); onClose();
-            } catch { /* ignore */ }
-            setUploading(false);
-          }} />
-        {isCustom && (
-          <div className="mt-2 flex items-center gap-2 rounded-xl border border-[#C6FF00]/50 bg-[#C6FF00]/10 px-3 py-2">
-            <AvatarImage wiki={value} size={32} light={light} />
-            <span className="font-game text-[12px] font-bold tracking-wider">✔ YOUR LOGO ACTIVE</span>
-          </div>
-        )}
         <div className="mt-3 flex gap-1.5">
           {AVATAR_CATEGORIES.map((c) => (
             <button key={c.id} onClick={() => setCat(c.id)}

@@ -449,7 +449,7 @@ export default function RacePage() {
               )}
             </button>
             {roomCode && mode === 'multiplayer' && <span className={`rounded-full border px-3 py-1.5 ${light ? 'border-black/15 bg-black/[0.04] text-black/80' : 'border-white/15 bg-white/[0.06] text-white/80'}`}>Room {roomCode}</span>}
-            <span className={`rounded-full px-3 py-1.5 ${mode === 'practice' ? (light ? 'bg-black/10 text-black/70' : 'bg-white/10 text-white/70') : connected ? 'bg-emerald-500/15 text-emerald-600' : 'bg-amber-500/15 text-amber-600'}`}>
+            <span className={`rounded-full px-3 py-1.5 ${mode === 'practice' ? (light ? 'bg-black/10 text-black/70' : 'bg-white/10 text-white/70') : connected ? 'bg-cyan-500/15 text-cyan-600' : 'bg-amber-500/15 text-amber-600'}`}>
               {mode === 'practice' ? 'Solo' : connected ? `Live · ${players.length}` : 'Connecting'}
             </span>
           </div>
@@ -490,11 +490,8 @@ export default function RacePage() {
           <section className={`mt-4 rounded-2xl border p-4 ${card}`}>
             <div className="flex flex-wrap items-center gap-4">
               <span className="flex items-center gap-2">
-                <button onClick={() => setAvatarOpen(true)} title="Upload your logo" aria-label="Upload your logo" className="relative shrink-0 rounded-full transition hover:scale-105">
-                  <span className={`block rounded-full ${!avatar ? 'ring-2 ring-dashed ring-[#C6FF00] ring-offset-2 ring-offset-transparent' : ''}`}>
-                    <AvatarImage wiki={avatar} size={40} light={light} />
-                  </span>
-                  <span className={`absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border text-[10px] font-bold ${light ? 'border-black/10 bg-black text-white' : 'border-white/20 bg-[#C6FF00] text-black'}`} aria-hidden>⬆</span>
+                <button onClick={() => setAvatarOpen(true)} title="Choose avatar" aria-label="Choose avatar" className="shrink-0 rounded-full transition hover:scale-105">
+                  <AvatarImage wiki={avatar} size={40} light={light} />
                 </button>
                 <label className="flex items-center gap-2">
                   <span className={`text-[11px] font-medium ${muted}`}>Driver</span>
@@ -518,19 +515,16 @@ export default function RacePage() {
         )}
 
         {showSetup && (
-          <section className={`game-typing relative z-10 mt-4 rounded-3xl border p-5 backdrop-blur-3xl md:p-6 ${light ? 'border-white/60 bg-white/50 shadow-[0_8px_24px_rgba(0,0,0,0.08)]' : 'border-[#C6FF00]/20 bg-black/30 shadow-[0_8px_32px_rgba(198,255,0,0.08)]'}`}>
+          <section className={`game-typing relative z-10 mt-4 rounded-3xl border p-5 backdrop-blur-3xl md:p-6 ${light ? 'border-white/60 bg-white/50 shadow-[0_8px_24px_rgba(0,0,0,0.08)]' : 'border-[#00E5FF]/20 bg-black/30 shadow-[0_8px_32px_rgba(0,229,255,0.08)]'}`}>
             {inviteCode && (
-              <p className={`mb-4 rounded-xl border px-4 py-3 text-[15px] font-bold ${light ? 'border-emerald-600/30 bg-emerald-500/10 text-black/80' : 'border-[#C6FF00]/25 bg-[#C6FF00]/[0.07] text-white/90'}`}>
+              <p className={`mb-4 rounded-xl border px-4 py-3 text-[15px] font-bold ${light ? 'border-cyan-600/30 bg-cyan-500/10 text-black/80' : 'border-[#00E5FF]/25 bg-[#00E5FF]/[0.07] text-white/90'}`}>
                 Invited to room {inviteCode}{mpDuration > 0 ? ` · ${mpDuration} min timed` : ' · Sprint'} — set your name, pick a car, hit Join.
               </p>
             )}
-            <p className={`font-game text-[14px] font-bold tracking-wider ${light ? 'text-emerald-700' : 'text-[#C6FF00] [text-shadow:0_0_14px_rgba(198,255,0,0.5)]'}`}>1 · DRIVER NAME + AVATAR</p>
+            <p className={`font-game text-[14px] font-bold tracking-wider ${light ? 'text-cyan-700' : 'text-[#00E5FF] [text-shadow:0_0_14px_rgba(0,229,255,0.5)]'}`}>1 · DRIVER NAME + AVATAR</p>
             <div className="mt-2 flex items-center gap-3">
-              <button onClick={() => setAvatarOpen(true)} title="Upload your logo" aria-label="Upload your logo" className="relative shrink-0 rounded-full transition hover:scale-105">
-                <span className={`block rounded-full ${!avatar ? 'ring-2 ring-dashed ring-[#C6FF00] ring-offset-2 ring-offset-transparent' : ''}`}>
-                  <AvatarImage wiki={avatar} size={48} light={light} />
-                </span>
-                <span className={`absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border text-[11px] font-bold ${light ? 'border-black/10 bg-black text-white' : 'border-white/20 bg-[#C6FF00] text-black'}`} aria-hidden>⬆</span>
+              <button onClick={() => setAvatarOpen(true)} title="Choose avatar" aria-label="Choose avatar" className="shrink-0 rounded-full transition hover:scale-105">
+                <AvatarImage wiki={avatar} size={48} light={light} />
               </button>
               <input value={name} data-name="1" maxLength={14}
                 onChange={(e) => { setName(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '')); setNameTouched(true); }}
@@ -540,7 +534,7 @@ export default function RacePage() {
             {nameTouched && !nameValid && (
               <p className="mt-1.5 text-[14px] font-bold text-red-500">Please enter your name to join the race.</p>
             )}
-            <p className={`mt-5 font-game text-[14px] font-bold tracking-wider ${light ? 'text-emerald-700' : 'text-[#C6FF00] [text-shadow:0_0_14px_rgba(198,255,0,0.5)]'}`}>2 · CHOOSE YOUR CAR</p>
+            <p className={`mt-5 font-game text-[14px] font-bold tracking-wider ${light ? 'text-cyan-700' : 'text-[#00E5FF] [text-shadow:0_0_14px_rgba(0,229,255,0.5)]'}`}>2 · CHOOSE YOUR CAR</p>
             <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-6">
               {CARS.map((c) => (
                 <button key={c.id} onClick={() => setCarId(c.id)}
@@ -552,12 +546,12 @@ export default function RacePage() {
             </div>
             {inviteCode ? (
               <div className={`mt-5 rounded-xl border px-4 py-3 ${light ? 'border-black/10 bg-black/[0.03]' : 'border-white/10 bg-black/40'}`}>
-                <p className={`font-game text-[13px] font-bold tracking-wider ${light ? 'text-emerald-700' : 'text-[#C6FF00]/90'}`}>HOST SETTINGS · LOCKED</p>
+                <p className={`font-game text-[13px] font-bold tracking-wider ${light ? 'text-cyan-700' : 'text-[#00E5FF]/90'}`}>HOST SETTINGS · LOCKED</p>
                 <p className={`mt-2 text-[16px] font-bold ${light ? 'text-black/80' : 'text-white/80'}`}>Mode · {durLabel(mpDuration)} · {(WEATHERS[mpWeather]).name}</p>
               </div>
             ) : (
               <>
-                <p className={`mt-5 font-game text-[14px] font-bold tracking-wider ${light ? 'text-emerald-700' : 'text-[#C6FF00] [text-shadow:0_0_14px_rgba(198,255,0,0.5)]'}`}>3 · RACE LENGTH</p>
+                <p className={`mt-5 font-game text-[14px] font-bold tracking-wider ${light ? 'text-cyan-700' : 'text-[#00E5FF] [text-shadow:0_0_14px_rgba(0,229,255,0.5)]'}`}>3 · RACE LENGTH</p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {DURATIONS.map((mins) => (
                     <button key={mins} onClick={() => setMpDuration(mins)}
@@ -566,13 +560,13 @@ export default function RacePage() {
                     </button>
                   ))}
                 </div>
-                <p className={`mt-5 font-game text-[14px] font-bold tracking-wider ${light ? 'text-emerald-700' : 'text-[#C6FF00] [text-shadow:0_0_14px_rgba(198,255,0,0.5)]'}`}>4 · TRACK WEATHER</p>
+                <p className={`mt-5 font-game text-[14px] font-bold tracking-wider ${light ? 'text-cyan-700' : 'text-[#00E5FF] [text-shadow:0_0_14px_rgba(0,229,255,0.5)]'}`}>4 · TRACK WEATHER</p>
                 <div className="mt-2">
                   <WeatherPicker light={light} value={mpWeather} onChange={setMpWeather} />
                 </div>
               </>
             )}
-            <p className={`mt-5 font-game text-[14px] font-bold tracking-wider ${light ? 'text-emerald-700' : 'text-[#C6FF00] [text-shadow:0_0_14px_rgba(198,255,0,0.5)]'}`}>{inviteCode ? '3 · ENTER THE GRID' : '5 · ENTER THE GRID'}</p>
+            <p className={`mt-5 font-game text-[14px] font-bold tracking-wider ${light ? 'text-cyan-700' : 'text-[#00E5FF] [text-shadow:0_0_14px_rgba(0,229,255,0.5)]'}`}>{inviteCode ? '3 · ENTER THE GRID' : '5 · ENTER THE GRID'}</p>
             <div className="mt-2 flex flex-wrap items-center gap-2">
               {inviteCode ? (
                 <button onClick={() => joinAs(inviteCode)} disabled={!nameValid} title={!nameValid ? 'Enter your name first' : undefined} className={`${primaryBtn} font-game text-[15px] font-bold tracking-wide`}>
@@ -592,12 +586,12 @@ export default function RacePage() {
         )}
 
         {showLobby && (
-          <section className={`game-typing relative z-10 mt-4 rounded-3xl border p-5 backdrop-blur-3xl md:p-6 ${light ? 'border-white/60 bg-white/50 shadow-[0_8px_24px_rgba(0,0,0,0.08)]' : 'border-[#C6FF00]/20 bg-black/30 shadow-[0_8px_32px_rgba(198,255,0,0.08)]'}`}>
+          <section className={`game-typing relative z-10 mt-4 rounded-3xl border p-5 backdrop-blur-3xl md:p-6 ${light ? 'border-white/60 bg-white/50 shadow-[0_8px_24px_rgba(0,0,0,0.08)]' : 'border-[#00E5FF]/20 bg-black/30 shadow-[0_8px_32px_rgba(0,229,255,0.08)]'}`}>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className={`font-game text-[13px] font-bold tracking-widest ${light ? 'text-black/70' : 'text-[#C6FF00] [text-shadow:0_0_12px_rgba(198,255,0,0.5)]'}`}>LOBBY · ROOM {roomCode} · {durLabel(roomDuration)}</p>
+                <p className={`font-game text-[13px] font-bold tracking-widest ${light ? 'text-black/70' : 'text-[#00E5FF] [text-shadow:0_0_12px_rgba(0,229,255,0.5)]'}`}>LOBBY · ROOM {roomCode} · {durLabel(roomDuration)}</p>
                 <p className={`mt-1 font-game text-[13px] font-bold tracking-widest ${light ? 'text-amber-700' : 'text-amber-300'}`}>👑 HOST · {hostName}</p>
-                <p className="mt-1 font-game text-4xl font-black tracking-wide md:text-5xl"><span className={light ? 'text-emerald-600 [text-shadow:0_0_18px_rgba(16,185,129,0.45)]' : 'text-[#C6FF00] [text-shadow:0_0_22px_rgba(198,255,0,0.65)]'}>Waiting for racers</span></p>
+                <p className="mt-1 font-game text-4xl font-black tracking-wide md:text-5xl"><span className={light ? 'text-cyan-600 [text-shadow:0_0_18px_rgba(6,182,212,0.45)]' : 'text-[#00E5FF] [text-shadow:0_0_22px_rgba(0,229,255,0.65)]'}>Waiting for racers</span></p>
               </div>
               <div className="flex gap-2">
                 {inRoom && (
@@ -607,11 +601,11 @@ export default function RacePage() {
                   className={ghostBtn}>{copied ? 'Link copied ✓' : 'Copy invite link'}</button>
               </div>
             </div>
-            <p className={`mt-2 break-all font-game text-[13px] font-bold ${light ? 'text-black/70' : 'text-[#E9FFB0]/90'}`}>{inviteLink}</p>
+            <p className={`mt-2 break-all font-game text-[13px] font-bold ${light ? 'text-black/70' : 'text-[#C8F7FF]/90'}`}>{inviteLink}</p>
             {host && lobbySecs === null && (
               <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
                 <span className="flex items-center gap-1.5">
-                  <span className={`mr-1 font-game text-[13px] font-bold tracking-wider ${light ? 'text-emerald-700' : 'text-[#C6FF00]/90'}`}>RACE LENGTH</span>
+                  <span className={`mr-1 font-game text-[13px] font-bold tracking-wider ${light ? 'text-cyan-700' : 'text-[#00E5FF]/90'}`}>RACE LENGTH</span>
                   {DURATIONS.map((mins) => (
                     <button key={mins} onClick={() => pushDuration(mins)}
                       className={`rounded-full border px-4 py-2 font-game text-[13px] font-bold transition ${roomDuration === mins ? pickActive : pickIdle}`}>
@@ -636,7 +630,7 @@ export default function RacePage() {
                   {(hostId ? p.id === hostId : (p.id === myId && isHost)) && (
                     <span className={`rounded-md px-2 py-1 font-game text-[11px] font-bold ${light ? 'bg-black text-white' : 'bg-white text-black'}`}>HOST</span>
                   )}
-                  <span className="ml-auto font-game text-[12px] font-bold text-emerald-600">Ready</span>
+                  <span className="ml-auto font-game text-[12px] font-bold text-cyan-600">Ready</span>
                 </div>
               ))}
             </div>
@@ -694,7 +688,7 @@ export default function RacePage() {
               {engine.phase === 'countdown' && (
                 <div className={`absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-2xl backdrop-blur-[2px] ${light ? 'bg-white/80' : 'bg-black/70'}`}>
                   <RaceLights remaining={engine.countdown} large />
-                  <p className="font-game text-7xl font-black tabular-nums [text-shadow:0_0_24px_rgba(198,255,0,0.6)]">{engine.countdown > 0 ? engine.countdown : 'GO'}</p>
+                  <p className="font-game text-7xl font-black tabular-nums [text-shadow:0_0_24px_rgba(0,229,255,0.6)]">{engine.countdown > 0 ? engine.countdown : 'GO'}</p>
                   <p className={`text-[11px] font-semibold uppercase tracking-[0.2em] ${faint2}`}>{engine.countdown > 0 ? 'On your marks' : 'Go go go'}</p>
                 </div>
               )}
@@ -711,9 +705,11 @@ export default function RacePage() {
                 </div>
               )}
               <div className="mb-3 flex items-center justify-between gap-3">
+                {(mode === 'practice' || mpTimed) && (
                 <p className={`text-[11px] ${light ? 'text-black/45' : 'text-white/45'}`}>
-                  {mode === 'practice' ? `Type for ${duration} minutes — car moves only with clean keys` : mpTimed ? `Type for ${roomDuration} minutes — most typed wins` : 'Type this passage — same for all racers'}
+                  {mode === 'practice' ? `Type for ${duration} minutes — car moves only with clean keys` : `Type for ${roomDuration} minutes — most typed wins`}
                 </p>
+                )}
                 {engine.isTimed && <p className="shrink-0 text-sm font-semibold tabular-nums">{fmt(engine.timeLeft)}</p>}
               </div>
               <p className="game-typing max-h-[300px] overflow-y-auto text-[26px] font-bold leading-[3rem] md:text-[30px] md:leading-[3.4rem]" aria-live="polite" style={{ letterSpacing: '0.03em' }}>
@@ -729,8 +725,8 @@ export default function RacePage() {
                         const wrong = done && engine.errors[i];
                         return (
                           <span key={i} id={`tc-${i}`}>
-                            {cur && <span className={`blink -ml-[2px] inline-block h-[1.15em] w-[3px] translate-y-[4px] ${light ? 'bg-emerald-600' : 'bg-emerald-300'}`} />}
-                            <span className={wrong ? (light ? 'rounded bg-red-600 text-white shadow-[0_0_10px_rgba(239,68,68,0.8)]' : 'rounded bg-red-500 px-0.5 text-white shadow-[0_0_12px_rgba(239,68,68,0.9)]') : done ? (light ? 'font-bold text-lime-600 [text-shadow:0_0_8px_rgba(132,204,22,0.4)]' : 'font-bold text-[#C6FF00] [text-shadow:0_0_10px_rgba(198,255,0,0.7)]') : cur ? (light ? 'rounded bg-amber-400 px-0.5 font-bold text-black shadow-[0_0_12px_rgba(251,191,36,0.9)]' : 'rounded bg-cyan-400 px-0.5 font-bold text-black shadow-[0_0_12px_rgba(34,211,238,0.9)]') : (light ? 'font-semibold text-black/55' : 'font-semibold text-white/80')}>
+                            {cur && <span className={`blink -ml-[2px] inline-block h-[1.15em] w-[3px] translate-y-[4px] ${light ? 'bg-cyan-600' : 'bg-cyan-300'}`} />}
+                            <span className={wrong ? (light ? 'rounded bg-red-600 text-white shadow-[0_0_10px_rgba(239,68,68,0.8)]' : 'rounded bg-red-500 px-0.5 text-white shadow-[0_0_12px_rgba(239,68,68,0.9)]') : done ? (light ? 'font-bold text-cyan-600 [text-shadow:0_0_8px_rgba(6,182,212,0.4)]' : 'font-bold text-[#00E5FF] [text-shadow:0_0_10px_rgba(0,229,255,0.7)]') : cur ? (light ? 'rounded bg-amber-400 px-0.5 font-bold text-black shadow-[0_0_12px_rgba(251,191,36,0.9)]' : 'rounded bg-cyan-400 px-0.5 font-bold text-black shadow-[0_0_12px_rgba(34,211,238,0.9)]') : (light ? 'font-semibold text-black/55' : 'font-semibold text-white/80')}>
                               {ch}
                             </span>
                           </span>
@@ -767,7 +763,7 @@ export default function RacePage() {
                     <p className={`text-[11px] font-medium ${muted}`}>
                       {mode === 'practice' ? `${duration} min sprint — complete` : mpTimed ? `${roomDuration} min timed — complete · P0${myPos}` : `Results — P0${myPos} finish`}
                     </p>
-                    <p className="mt-1 font-game text-4xl font-black tracking-wide md:text-5xl">WPM {Math.round(wpm)} <span className={`text-xl font-bold ${light ? 'text-black/50' : 'text-[#C6FF00]'}`}>· {Math.round(engine.acc)}% acc</span></p>
+                    <p className="mt-1 font-game text-4xl font-black tracking-wide md:text-5xl">WPM {Math.round(wpm)} <span className={`text-xl font-bold ${light ? 'text-black/50' : 'text-[#00E5FF]'}`}>· {Math.round(engine.acc)}% acc</span></p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     {mode === 'practice' ? (
@@ -794,7 +790,7 @@ export default function RacePage() {
                             </td>
                             <td className="py-2 pr-4 font-semibold"><span className="flex items-center gap-2"><AvatarImage wiki={r.avatar} size={30} light={light} />{r.name}{r.finished ? ' 🏁' : ''}</span></td>
                             <td className="py-2 pr-4 tabular-nums">{r.wpm}</td>
-                            <td className={`py-2 pr-4 tabular-nums font-semibold ${r.acc >= 95 ? 'text-emerald-500' : r.acc >= 85 ? 'text-amber-500' : 'text-red-500'}`}>{Math.round(r.acc)}%</td>
+                            <td className={`py-2 pr-4 tabular-nums font-semibold ${r.acc >= 95 ? 'text-cyan-500' : r.acc >= 85 ? 'text-amber-500' : 'text-red-500'}`}>{Math.round(r.acc)}%</td>
                             <td className="py-2 tabular-nums">{Math.round(r.progress * 100)}%</td>
                           </tr>
                         ))}

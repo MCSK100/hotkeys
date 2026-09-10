@@ -66,7 +66,7 @@ export function sharedQuote(roomCode: string, round = 0): string {
 export type RaceCar = { id: string; name: string; color: string; img: string };
 
 export const CARS: RaceCar[] = [
-  { id: 'volt', name: 'VOLT GT', color: '#C6FF00', img: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=200&q=60&auto=format&fit=crop' },
+  { id: 'volt', name: 'VOLT GT', color: '#00E5FF', img: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=200&q=60&auto=format&fit=crop' },
   { id: 'ember', name: 'EMBER S', color: '#FF3D2E', img: 'https://images.unsplash.com/photo-1493238792000-8113da705763?w=200&q=60&auto=format&fit=crop' },
   { id: 'ghost', name: 'GHOST X', color: '#e2e8f0', img: 'https://images.unsplash.com/photo-1502877338535-766e1452684a?w=200&q=60&auto=format&fit=crop' },
   { id: 'storm', name: 'STORM R', color: '#38bdf8', img: 'https://images.unsplash.com/photo-1542362567-b07e54358753?w=200&q=60&auto=format&fit=crop' },
