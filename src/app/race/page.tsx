@@ -582,11 +582,11 @@ export default function RacePage() {
         )}
 
         {showLobby && (
-          <section className={`game-typing relative z-10 mt-4 rounded-3xl border p-5 md:p-6 ${card}`}>
+          <section className={`game-typing relative z-10 mt-4 rounded-3xl border p-5 backdrop-blur-2xl md:p-6 ${light ? 'border-white/60 bg-white/45 shadow-[0_8px_24px_rgba(0,0,0,0.08)]' : 'border-white/15 bg-black/25 shadow-[0_8px_24px_rgba(0,0,0,0.35)]'}`}>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className={`font-game text-[13px] font-bold tracking-widest ${muted}`}>LOBBY · ROOM {roomCode} · {durLabel(roomDuration)}</p>
-                <p className="mt-1 font-game text-4xl font-black tracking-wide md:text-5xl"><span className={light ? 'text-black' : 'bg-gradient-to-r from-[#C6FF00] via-cyan-300 to-fuchsia-400 bg-clip-text text-transparent'}>Waiting for racers</span></p>
+                <p className="mt-1 font-game text-4xl font-black tracking-wide md:text-5xl"><span className={light ? 'text-emerald-600 [text-shadow:0_0_18px_rgba(16,185,129,0.45)]' : 'text-[#C6FF00] [text-shadow:0_0_22px_rgba(198,255,0,0.65)]'}>Waiting for racers</span></p>
               </div>
               <div className="flex gap-2">
                 {inRoom && (

@@ -52,8 +52,8 @@ export default function AvatarPicker({ value, light, onPick, onClose }: {
           <button onClick={onClose} aria-label="Close" className={`rounded-lg border px-2 py-1 text-[12px] ${light ? 'border-black/15' : 'border-white/15'}`}>✕</button>
         </div>
         <button onClick={() => fileRef.current?.click()} disabled={uploading}
-          className={`mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border px-4 py-3.5 font-game text-[16px] font-bold uppercase tracking-widest transition disabled:opacity-60 ${light ? 'border-black/15 bg-black/[0.04] text-black hover:bg-black/[0.07]' : 'border-white/15 bg-white/[0.05] text-white hover:bg-white/[0.08]'}`}>
-          <span className="text-xl">📤</span> {uploading ? 'UPLOADING…' : '⬆ UPLOAD YOUR LOGO'}
+          className={`mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl border px-3 py-2 font-game text-[12px] font-bold uppercase tracking-widest transition disabled:opacity-60 ${light ? 'border-black/15 bg-black/[0.04] text-black hover:bg-black/[0.07]' : 'border-white/15 bg-white/[0.05] text-white hover:bg-white/[0.08]'}`}>
+          <span className="text-sm">📤</span> {uploading ? 'UPLOADING…' : '⬆ UPLOAD YOUR LOGO'}
         </button>
         <input ref={fileRef} type="file" accept="image/*" className="hidden" aria-label="Upload logo"
           onChange={async (e) => {
