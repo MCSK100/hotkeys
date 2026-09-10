@@ -131,8 +131,8 @@ export default function RacePage() {
     ? 'rounded-full border border-white/60 bg-white/45 backdrop-blur-md px-5 py-2.5 text-[13px] font-semibold text-black transition hover:bg-white/60 disabled:opacity-40'
     : 'rounded-full border border-white/20 bg-white/[0.06] backdrop-blur-md px-5 py-2.5 text-[13px] font-semibold text-white/90 transition hover:bg-white/[0.12] disabled:opacity-40';
   const card = light
-    ? 'border-white/60 bg-white/45 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.08)]'
-    : 'border-white/15 bg-black/25 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.35)]';
+    ? 'border-white/60 bg-white/45 backdrop-blur-xl shadow-[0_8px_24px_rgba(0,0,0,0.08)]'
+    : 'border-white/15 bg-black/25 backdrop-blur-xl shadow-[0_8px_24px_rgba(0,0,0,0.35)]';
   const muted = light ? 'text-black/50' : 'text-white/50';
   const faint = light ? 'text-black/40' : 'text-white/40';
   const faint2 = light ? 'text-black/60' : 'text-white/60';
@@ -395,7 +395,7 @@ export default function RacePage() {
           className="h-full w-full object-cover" style={{ transform: 'translateZ(0)' }}>
           <source src="/lobby-video.mp4" type="video/mp4" />
         </video>
-        <div className={`absolute inset-0 backdrop-blur-md ${light ? 'bg-white/55' : 'bg-black/68'}`} />
+        <div className={`absolute inset-0 ${light ? 'bg-white/55' : 'bg-black/68'}`} />
         <div className={`absolute inset-0 ${light ? 'bg-gradient-to-b from-black/25 via-black/10 to-black/45' : 'bg-gradient-to-b from-black/60 via-black/25 to-black/80'}`} />
       </div>
       <div className="sticky top-3 z-20 px-4">
@@ -645,7 +645,7 @@ export default function RacePage() {
 
         {showTrack && (
           <>
-            <section className={`relative z-10 mt-4 overflow-hidden rounded-2xl border backdrop-blur-md ${light ? 'border-white/60 bg-white/45' : 'border-white/15 bg-black/25'}`}>
+            <section className={`relative z-10 mt-4 overflow-hidden rounded-2xl border backdrop-blur-xl ${light ? 'border-white/60 bg-white/45' : 'border-white/15 bg-black/25'}`}>
               <WeatherCanvas weather={activeWeather.id} light={light} />
               <div className={`relative z-[6] flex items-center justify-between gap-2 border-b px-4 py-2.5 text-[11px] ${light ? 'border-black/10 text-black/60' : 'border-white/10 text-white/55'}`}>
                 <span className="truncate font-medium">
@@ -673,7 +673,7 @@ export default function RacePage() {
               </div>
             </section>
 
-            <section className={`relative z-10 mt-4 rounded-2xl border p-5 backdrop-blur-md md:p-7 ${light ? 'border-white/60 bg-white/45' : 'border-white/15 bg-black/25'}`} onClick={smartFocus}>
+            <section className={`relative z-10 mt-4 rounded-2xl border p-5 backdrop-blur-xl md:p-7 ${light ? 'border-white/60 bg-white/45' : 'border-white/15 bg-black/25'}`} onClick={smartFocus}>
               {engine.phase === 'countdown' && (
                 <div className={`absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-2xl backdrop-blur-[2px] ${light ? 'bg-white/80' : 'bg-black/70'}`}>
                   <RaceLights remaining={engine.countdown} large />
