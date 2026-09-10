@@ -480,8 +480,11 @@ export default function RacePage() {
           <section className={`mt-4 rounded-2xl border p-4 ${card}`}>
             <div className="flex flex-wrap items-center gap-4">
               <span className="flex items-center gap-2">
-                <button onClick={() => setAvatarOpen(true)} title="Choose avatar" aria-label="Choose avatar" className="shrink-0 rounded-full transition hover:scale-105">
-                  <AvatarImage wiki={avatar} size={36} light={light} />
+                <button onClick={() => setAvatarOpen(true)} title="Upload your logo" aria-label="Upload your logo" className="relative shrink-0 rounded-full transition hover:scale-105">
+                  <span className={`block rounded-full ${!avatar ? 'ring-2 ring-dashed ring-[#C6FF00] ring-offset-2 ring-offset-transparent' : ''}`}>
+                    <AvatarImage wiki={avatar} size={40} light={light} />
+                  </span>
+                  <span className={`absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full border text-[10px] font-bold ${light ? 'border-black/10 bg-black text-white' : 'border-white/20 bg-[#C6FF00] text-black'}`} aria-hidden>⬆</span>
                 </button>
                 <label className="flex items-center gap-2">
                   <span className={`text-[11px] font-medium ${muted}`}>Driver</span>
@@ -512,9 +515,12 @@ export default function RacePage() {
               </p>
             )}
             <p className={`font-game text-[14px] font-bold tracking-wider ${muted}`}>1 · DRIVER NAME + AVATAR</p>
-            <div className="mt-2 flex items-center gap-2">
-              <button onClick={() => setAvatarOpen(true)} title="Choose avatar" aria-label="Choose avatar" className="shrink-0 rounded-full transition hover:scale-105">
-                <AvatarImage wiki={avatar} size={46} light={light} />
+            <div className="mt-2 flex items-center gap-3">
+              <button onClick={() => setAvatarOpen(true)} title="Upload your logo" aria-label="Upload your logo" className="relative shrink-0 rounded-full transition hover:scale-105">
+                <span className={`block rounded-full ${!avatar ? 'ring-2 ring-dashed ring-[#C6FF00] ring-offset-2 ring-offset-transparent' : ''}`}>
+                  <AvatarImage wiki={avatar} size={48} light={light} />
+                </span>
+                <span className={`absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border text-[11px] font-bold ${light ? 'border-black/10 bg-black text-white' : 'border-white/20 bg-[#C6FF00] text-black'}`} aria-hidden>⬆</span>
               </button>
               <input value={name} data-name="1" maxLength={14}
                 onChange={(e) => { setName(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '')); setNameTouched(true); }}
