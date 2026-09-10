@@ -52,9 +52,7 @@ export default function AvatarPicker({ value, light, onPick, onClose }: {
           <button onClick={onClose} aria-label="Close" className={`rounded-lg border px-2 py-1 text-[12px] ${light ? 'border-black/15' : 'border-white/15'}`}>✕</button>
         </div>
         <button onClick={() => fileRef.current?.click()} disabled={uploading}
-          className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-[#C6FF00] bg-gradient-to-r from-[#C6FF00]/20 via-fuchsia-500/20 to-cyan-400/20 px-4 py-3.5 font-game text-[16px] font-bold uppercase tracking-widest text-current shadow-[0_0_18px_rgba(198,255,0,0.35)] transition hover:scale-[1.02] hover:shadow-[0_0_28px_rgba(198,255,0,0.6)] active:scale-[0.98] disabled:opacity-60"
-          style={{ animation: 'uploadPulse 1.6s ease-in-out infinite' }}>
-          <style>{`@keyframes uploadPulse { 0%,100% { box-shadow: 0 0 12px rgba(198,255,0,.35);} 50% { box-shadow: 0 0 26px rgba(198,255,0,.7);} }`}</style>
+          className={`mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border px-4 py-3.5 font-game text-[16px] font-bold uppercase tracking-widest transition disabled:opacity-60 ${light ? 'border-black/15 bg-black/[0.04] text-black hover:bg-black/[0.07]' : 'border-white/15 bg-white/[0.05] text-white hover:bg-white/[0.08]'}`}>
           <span className="text-xl">📤</span> {uploading ? 'UPLOADING…' : '⬆ UPLOAD YOUR LOGO'}
         </button>
         <input ref={fileRef} type="file" accept="image/*" className="hidden" aria-label="Upload logo"

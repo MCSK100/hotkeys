@@ -390,9 +390,13 @@ export default function RacePage() {
   return (
     <main className={`relative min-h-screen font-body ${light ? 'text-[#14171c]' : 'text-[#eceef1]'}`} onClick={smartFocus}>
       <div aria-hidden className="pointer-events-none fixed inset-0 z-0">
-        <video autoPlay muted loop playsInline preload="auto" src="/lobby-video.mp4" className="h-full w-full object-cover" />
-        <div className={`absolute inset-0 backdrop-blur-[3px] ${light ? 'bg-white/60' : 'bg-black/55'}`} />
-        <div className={`absolute inset-0 ${light ? 'bg-gradient-to-b from-white/20 via-transparent to-white/40' : 'bg-gradient-to-b from-black/50 via-transparent to-black/70'}`} />
+        <video autoPlay muted loop playsInline disablePictureInPicture preload="auto" tabIndex={-1}
+          ref={(v) => { if (v) { v.muted = true; const p = v.play(); if (p) p.catch(() => {}); } }}
+          className="h-full w-full object-cover" style={{ transform: 'translateZ(0)' }}>
+          <source src="/lobby-video.mp4" type="video/mp4" />
+        </video>
+        <div className={`absolute inset-0 ${light ? 'bg-white/55' : 'bg-black/68'}`} />
+        <div className={`absolute inset-0 ${light ? 'bg-gradient-to-b from-black/25 via-black/10 to-black/45' : 'bg-gradient-to-b from-black/60 via-black/25 to-black/80'}`} />
       </div>
       <div className="sticky top-3 z-20 px-4">
       <header className={`mx-auto max-w-6xl rounded-full border shadow-xl backdrop-blur-xl ${light ? 'border-white/40 bg-white/30 shadow-[0_8px_32px_rgba(0,0,0,0.12)]' : 'border-white/20 bg-black/30 shadow-[0_8px_32px_rgba(0,0,0,0.5)]'}`}>
@@ -423,19 +427,14 @@ export default function RacePage() {
               </button>
             )}
             <button onClick={() => setSoundOn((s) => !s)} aria-label={soundOn ? 'Mute sound' : 'Unmute sound'} aria-pressed={soundOn} title={soundOn ? 'Mute' : 'Unmute'}
-              className={`flex h-9 w-9 items-center justify-center rounded-full border-2 transition active:scale-95 ${soundOn ? (light ? 'border-lime-600 bg-lime-400 text-black shadow-[0_0_14px_rgba(132,204,22,0.7)]' : 'border-[#C6FF00] bg-[#C6FF00] text-black shadow-[0_0_14px_rgba(198,255,0,0.7)]') : (light ? 'border-black/20 bg-white/40 text-black/40' : 'border-white/20 bg-white/5 text-white/40')}`}>
-              <style>{`@keyframes eqB { 0%,100% { transform: scaleY(0.4); } 50% { transform: scaleY(1); } } @keyframes muteShake { 0%,100% { transform: rotate(0); } 25% { transform: rotate(-12deg); } 75% { transform: rotate(12deg); } }`}</style>
+              className={`flex h-9 w-9 items-center justify-center rounded-full border transition ${light ? 'border-black/15 bg-white/40 text-black/70 hover:bg-white/60' : 'border-white/15 bg-white/[0.06] text-white/70 hover:bg-white/[0.12]'}`}>
               {soundOn ? (
-                <span className="flex items-end gap-[2.5px]" aria-hidden>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3z" /></svg>
-                  <span className="flex items-end gap-[2px]">
-                    <span className="w-[3px] rounded-full bg-current" style={{ height: 12, transformOrigin: 'bottom', animation: 'eqB .7s ease-in-out infinite' }} />
-                    <span className="w-[3px] rounded-full bg-current" style={{ height: 12, transformOrigin: 'bottom', animation: 'eqB .7s ease-in-out .15s infinite' }} />
-                    <span className="w-[3px] rounded-full bg-current" style={{ height: 12, transformOrigin: 'bottom', animation: 'eqB .7s ease-in-out .3s infinite' }} />
-                  </span>
-                </span>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M11 5 6 9H2v6h4l5 5V5z" fill="currentColor" stroke="none" />
+                  <path d="M15.5 8.5a5 5 0 0 1 0 7" /><path d="M18.5 5.5a9 9 0 0 1 0 13" />
+                </svg>
               ) : (
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: 'muteShake 1.2s ease-in-out infinite' }} aria-hidden>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
                   <path d="M11 5 6 9H2v6h4l5 5V5z" fill="currentColor" stroke="none" />
                   <line x1="23" y1="9" x2="17" y2="15" /><line x1="17" y1="9" x2="23" y2="15" />
                 </svg>
