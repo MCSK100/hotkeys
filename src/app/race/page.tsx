@@ -131,8 +131,8 @@ export default function RacePage() {
     ? 'rounded-full border border-white/40 bg-white/20 backdrop-blur-md px-5 py-2.5 text-[13px] font-semibold text-black transition hover:bg-white/30 disabled:opacity-40'
     : 'rounded-full border border-white/20 bg-white/[0.06] backdrop-blur-md px-5 py-2.5 text-[13px] font-semibold text-white/90 transition hover:bg-white/[0.12] disabled:opacity-40';
   const card = light
-    ? 'border-white/40 bg-white/20 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.12)]'
-    : 'border-white/20 bg-white/[0.06] backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.4)]';
+    ? 'border-white/50 bg-white/10 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.08)]'
+    : 'border-white/15 bg-black/25 backdrop-blur-md shadow-[0_8px_24px_rgba(0,0,0,0.35)]';
   const muted = light ? 'text-black/50' : 'text-white/50';
   const faint = light ? 'text-black/40' : 'text-white/40';
   const faint2 = light ? 'text-black/60' : 'text-white/60';
@@ -388,7 +388,12 @@ export default function RacePage() {
   const mpTimed = mode === 'multiplayer' && roomDuration > 0;
 
   return (
-    <main className={`min-h-screen font-body ${light ? 'bg-[#eef0f3] text-[#14171c]' : 'bg-[#08090c] text-[#eceef1]'}`} onClick={smartFocus}>
+    <main className={`relative min-h-screen font-body ${light ? 'text-[#14171c]' : 'text-[#eceef1]'}`} onClick={smartFocus}>
+      <div aria-hidden className="pointer-events-none fixed inset-0 z-0">
+        <video autoPlay muted loop playsInline preload="auto" src="/lobby-video.mp4" className="h-full w-full object-cover" />
+        <div className={`absolute inset-0 ${light ? 'bg-white/55' : 'bg-black/55'}`} />
+        <div className={`absolute inset-0 ${light ? 'bg-gradient-to-b from-white/20 via-transparent to-white/40' : 'bg-gradient-to-b from-black/50 via-transparent to-black/70'}`} />
+      </div>
       <div className="sticky top-3 z-20 px-4">
       <header className={`mx-auto max-w-6xl rounded-full border shadow-xl backdrop-blur-xl ${light ? 'border-white/40 bg-white/30 shadow-[0_8px_32px_rgba(0,0,0,0.12)]' : 'border-white/20 bg-black/30 shadow-[0_8px_32px_rgba(0,0,0,0.5)]'}`}>
         <div className="flex h-[60px] items-center justify-between px-5">
@@ -429,7 +434,7 @@ export default function RacePage() {
       </header>
       </div>
 
-      <div className="mx-auto max-w-6xl px-4 py-6">
+      <div className="relative z-10 mx-auto max-w-6xl px-4 py-6">
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => { setMode('practice'); setJoined(false); window.history.replaceState(null, '', '/race?mode=practice'); }}
@@ -485,10 +490,7 @@ export default function RacePage() {
         )}
 
         {showSetup && (
-          <section className={`relative mt-4 overflow-hidden rounded-3xl border p-5 md:p-6 ${card}`}>
-            <video autoPlay muted loop playsInline src="/lobby-video.mp4" className="pointer-events-none absolute inset-0 h-full w-full object-cover" />
-            <div className={`absolute inset-0 ${light ? 'bg-white/60' : 'bg-black/60'}`} />
-            <div className="relative z-10">
+          <section className={`relative z-10 mt-4 rounded-3xl border p-5 md:p-6 ${card}`}>
             {inviteCode && (
               <p className={`mb-4 rounded-xl border px-4 py-3 text-[12px] ${light ? 'border-black/15 bg-black/[0.03] text-black/80' : 'border-white/15 bg-white/[0.05] text-white/80'}`}>
                 Invited to room {inviteCode}{mpDuration > 0 ? ` · ${mpDuration} min timed` : ' · Sprint'} — set your name, pick a car, hit Join.
@@ -555,15 +557,11 @@ export default function RacePage() {
                 </>
               )}
             </div>
-            </div>
           </section>
         )}
 
         {showLobby && (
-          <section className={`relative mt-4 overflow-hidden rounded-3xl border p-5 md:p-6 ${card}`}>
-            <video autoPlay muted loop playsInline src="/lobby-video.mp4" className="pointer-events-none absolute inset-0 h-full w-full object-cover" />
-            <div className={`absolute inset-0 ${light ? 'bg-white/60 backdrop-blur-[2px]' : 'bg-black/60 backdrop-blur-[2px]'}`} />
-            <div className="relative z-10">
+          <section className={`relative z-10 mt-4 rounded-3xl border p-5 md:p-6 ${card}`}>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className={`text-[11px] font-medium ${muted}`}>Lobby · Room {roomCode} · {durLabel(roomDuration)}</p>
@@ -627,13 +625,12 @@ export default function RacePage() {
                 <button onClick={() => { setJoined(false); setGo(false); }} className={ghostBtn}>Leave</button>
               </div>
             )}
-            </div>
           </section>
         )}
 
         {showTrack && (
           <>
-            <section className={`relative mt-4 overflow-hidden rounded-2xl border ${light ? 'border-black/10 bg-[#dfe4ec]' : 'border-white/10 bg-[#0b0e14]'}`}>
+            <section className={`relative z-10 mt-4 overflow-hidden rounded-2xl border backdrop-blur-md ${light ? 'border-white/50 bg-white/10' : 'border-white/15 bg-black/25'}`}>
               <WeatherCanvas weather={activeWeather.id} light={light} />
               <div className={`relative z-[6] flex items-center justify-between gap-2 border-b px-4 py-2.5 text-[11px] ${light ? 'border-black/10 text-black/60' : 'border-white/10 text-white/55'}`}>
                 <span className="truncate font-medium">
@@ -661,7 +658,7 @@ export default function RacePage() {
               </div>
             </section>
 
-            <section className={`relative mt-4 rounded-2xl border p-5 md:p-7 ${light ? 'border-black/10 bg-white' : 'border-white/10 bg-black/50'}`} onClick={smartFocus}>
+            <section className={`relative z-10 mt-4 rounded-2xl border p-5 backdrop-blur-md md:p-7 ${light ? 'border-white/50 bg-white/10' : 'border-white/15 bg-black/25'}`} onClick={smartFocus}>
               {engine.phase === 'countdown' && (
                 <div className={`absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-2xl backdrop-blur-[2px] ${light ? 'bg-white/80' : 'bg-black/70'}`}>
                   <RaceLights remaining={engine.countdown} large />
