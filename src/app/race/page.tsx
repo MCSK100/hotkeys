@@ -132,7 +132,7 @@ export default function RacePage() {
     : 'rounded-full border border-white/20 bg-white/[0.06] backdrop-blur-md px-5 py-2.5 text-[13px] font-semibold text-white/90 transition hover:bg-white/[0.12] disabled:opacity-40';
   const card = light
     ? 'border-white/60 bg-white/45 backdrop-blur-2xl shadow-[0_8px_24px_rgba(0,0,0,0.08)]'
-    : 'border-white/15 bg-black/60 backdrop-blur-2xl shadow-[0_8px_24px_rgba(0,0,0,0.35)]';
+    : 'border-white/15 bg-black/70 backdrop-blur-2xl shadow-[0_8px_24px_rgba(0,0,0,0.35)]';
   const muted = light ? 'text-black/50' : 'text-white/50';
   const faint = light ? 'text-black/40' : 'text-white/40';
   const faint2 = light ? 'text-black/60' : 'text-white/60';
@@ -518,13 +518,13 @@ export default function RacePage() {
         )}
 
         {showSetup && (
-          <section className={`game-typing lobby-home-fonts relative z-10 mt-4 rounded-3xl border p-5 backdrop-blur-3xl md:p-6 ${light ? 'border-white/60 bg-white/50 shadow-[0_8px_24px_rgba(0,0,0,0.08)]' : 'border-[#3B82F6]/20 bg-black/60 shadow-[0_8px_32px_rgba(59,130,246,0.08)]'}`}>
+          <section className={`game-typing lobby-home-fonts relative z-10 mt-4 rounded-3xl border p-5 backdrop-blur-3xl md:p-6 ${light ? 'border-white/60 bg-white/50 shadow-[0_8px_24px_rgba(0,0,0,0.08)]' : 'border-[#3B82F6]/20 bg-black/70 shadow-[0_8px_32px_rgba(59,130,246,0.16)]'}`}>
             {inviteCode && (
               <p className={`mb-4 rounded-xl border px-4 py-3 text-[15px] font-bold ${light ? 'border-blue-600/30 bg-blue-500/10 text-black/80' : 'border-[#3B82F6]/25 bg-[#3B82F6]/[0.07] text-white/90'}`}>
                 Invited to room {inviteCode}{mpDuration > 0 ? ` · ${mpDuration} min timed` : ' · Sprint'} — set your name, pick a car, hit Join.
               </p>
             )}
-            <p className={`font-game text-[14px] font-bold tracking-wider ${light ? 'text-blue-700' : 'text-[#3B82F6] [text-shadow:0_0_14px_rgba(59,130,246,0.5)]'}`}>1 · DRIVER NAME + AVATAR</p>
+            <p className={`font-game text-[14px] font-bold tracking-wider ${light ? 'text-blue-700' : 'text-[#3B82F6] [text-shadow:0_0_14px_rgba(59,130,246,0.75)]'}`}>1 · DRIVER NAME + AVATAR</p>
             <div className="mt-2 flex items-center gap-3">
               <button onClick={() => setAvatarOpen(true)} title="Choose avatar" aria-label="Choose avatar" className="shrink-0 rounded-full transition hover:scale-105">
                 <AvatarImage wiki={avatar} size={48} light={light} />
@@ -537,7 +537,7 @@ export default function RacePage() {
             {nameTouched && !nameValid && (
               <p className="mt-1.5 text-[14px] font-bold text-red-500">Please enter your name to join the race.</p>
             )}
-            <p className={`mt-5 font-game text-[14px] font-bold tracking-wider ${light ? 'text-blue-700' : 'text-[#3B82F6] [text-shadow:0_0_14px_rgba(59,130,246,0.5)]'}`}>2 · CHOOSE YOUR CAR</p>
+            <p className={`mt-5 font-game text-[14px] font-bold tracking-wider ${light ? 'text-blue-700' : 'text-[#3B82F6] [text-shadow:0_0_14px_rgba(59,130,246,0.75)]'}`}>2 · CHOOSE YOUR CAR</p>
             <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-6">
               {CARS.map((c) => (
                 <button key={c.id} onClick={() => setCarId(c.id)}
@@ -554,7 +554,7 @@ export default function RacePage() {
               </div>
             ) : (
               <>
-                <p className={`mt-5 font-game text-[14px] font-bold tracking-wider ${light ? 'text-blue-700' : 'text-[#3B82F6] [text-shadow:0_0_14px_rgba(59,130,246,0.5)]'}`}>3 · RACE LENGTH</p>
+                <p className={`mt-5 font-game text-[14px] font-bold tracking-wider ${light ? 'text-blue-700' : 'text-[#3B82F6] [text-shadow:0_0_14px_rgba(59,130,246,0.75)]'}`}>3 · RACE LENGTH</p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {DURATIONS.map((mins) => (
                     <button key={mins} onClick={() => setMpDuration(mins)}
@@ -563,13 +563,13 @@ export default function RacePage() {
                     </button>
                   ))}
                 </div>
-                <p className={`mt-5 font-game text-[14px] font-bold tracking-wider ${light ? 'text-blue-700' : 'text-[#3B82F6] [text-shadow:0_0_14px_rgba(59,130,246,0.5)]'}`}>4 · TRACK WEATHER</p>
+                <p className={`mt-5 font-game text-[14px] font-bold tracking-wider ${light ? 'text-blue-700' : 'text-[#3B82F6] [text-shadow:0_0_14px_rgba(59,130,246,0.75)]'}`}>4 · TRACK WEATHER</p>
                 <div className="mt-2">
                   <WeatherPicker light={light} value={mpWeather} onChange={setMpWeather} />
                 </div>
               </>
             )}
-            <p className={`mt-5 font-game text-[14px] font-bold tracking-wider ${light ? 'text-blue-700' : 'text-[#3B82F6] [text-shadow:0_0_14px_rgba(59,130,246,0.5)]'}`}>{inviteCode ? '3 · ENTER THE GRID' : '5 · ENTER THE GRID'}</p>
+            <p className={`mt-5 font-game text-[14px] font-bold tracking-wider ${light ? 'text-blue-700' : 'text-[#3B82F6] [text-shadow:0_0_14px_rgba(59,130,246,0.75)]'}`}>{inviteCode ? '3 · ENTER THE GRID' : '5 · ENTER THE GRID'}</p>
             <div className="mt-2 flex flex-wrap items-center gap-2">
               {inviteCode ? (
                 <button onClick={() => joinAs(inviteCode)} disabled={!nameValid} title={!nameValid ? 'Enter your name first' : undefined} className={`${primaryBtn} font-game text-[15px] font-bold tracking-wide`}>
@@ -589,12 +589,12 @@ export default function RacePage() {
         )}
 
         {showLobby && (
-          <section className={`game-typing lobby-home-fonts relative z-10 mt-4 rounded-3xl border p-5 backdrop-blur-3xl md:p-6 ${light ? 'border-white/60 bg-white/50 shadow-[0_8px_24px_rgba(0,0,0,0.08)]' : 'border-[#3B82F6]/20 bg-black/60 shadow-[0_8px_32px_rgba(59,130,246,0.08)]'}`}>
+          <section className={`game-typing lobby-home-fonts relative z-10 mt-4 rounded-3xl border p-5 backdrop-blur-3xl md:p-6 ${light ? 'border-white/60 bg-white/50 shadow-[0_8px_24px_rgba(0,0,0,0.08)]' : 'border-[#3B82F6]/20 bg-black/70 shadow-[0_8px_32px_rgba(59,130,246,0.16)]'}`}>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className={`font-game text-[13px] font-bold tracking-widest ${light ? 'text-black/70' : 'text-[#3B82F6] [text-shadow:0_0_12px_rgba(59,130,246,0.5)]'}`}>LOBBY · ROOM {roomCode} · {durLabel(roomDuration)}</p>
+                <p className={`font-game text-[13px] font-bold tracking-widest ${light ? 'text-black/70' : 'text-[#3B82F6] [text-shadow:0_0_12px_rgba(59,130,246,0.75)]'}`}>LOBBY · ROOM {roomCode} · {durLabel(roomDuration)}</p>
                 <p className={`mt-1 font-game text-[13px] font-bold tracking-widest ${light ? 'text-amber-700' : 'text-amber-300'}`}>👑 HOST · {hostName}</p>
-                <p className="mt-1 font-game text-4xl font-black tracking-wide md:text-5xl"><span className={light ? 'text-blue-600 [text-shadow:0_0_18px_rgba(29,78,216,0.45)]' : 'text-[#3B82F6] [text-shadow:0_0_22px_rgba(59,130,246,0.65)]'}>Waiting for racers</span></p>
+                <p className="mt-1 font-game text-4xl font-black tracking-wide md:text-5xl"><span className={light ? 'text-blue-600 [text-shadow:0_0_18px_rgba(29,78,216,0.45)]' : 'text-[#3B82F6] [text-shadow:0_0_22px_rgba(59,130,246,0.85)]'}>Waiting for racers</span></p>
               </div>
               <div className="flex gap-2">
                 {inRoom && (
@@ -659,7 +659,7 @@ export default function RacePage() {
 
         {showTrack && (
           <>
-            <section className={`relative z-10 mt-4 overflow-hidden rounded-2xl border backdrop-blur-2xl ${light ? 'border-white/60 bg-white/45' : 'border-white/15 bg-black/60'}`}>
+            <section className={`relative z-10 mt-4 overflow-hidden rounded-2xl border backdrop-blur-2xl ${light ? 'border-white/60 bg-white/45' : 'border-white/15 bg-black/70'}`}>
               <WeatherCanvas weather={activeWeather.id} light={light} />
               <div className={`relative z-[6] flex items-center justify-between gap-2 border-b px-4 py-2.5 text-[11px] ${light ? 'border-black/10 text-black/60' : 'border-white/10 text-white/55'}`}>
                 <span className="truncate font-medium">
@@ -687,7 +687,7 @@ export default function RacePage() {
               </div>
             </section>
 
-            <section className={`relative z-10 mt-4 rounded-2xl border p-5 backdrop-blur-3xl md:p-7 ${light ? 'border-white/60 bg-white/45' : 'border-white/15 bg-black/60'}`} onClick={smartFocus}>
+            <section className={`relative z-10 mt-4 rounded-2xl border p-5 backdrop-blur-3xl md:p-7 ${light ? 'border-white/60 bg-white/45' : 'border-white/15 bg-black/70'}`} onClick={smartFocus}>
               {engine.phase === 'countdown' && (
                 <div className={`absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-2xl backdrop-blur-[2px] ${light ? 'bg-white/80' : 'bg-black/70'}`}>
                   <RaceLights remaining={engine.countdown} large />
