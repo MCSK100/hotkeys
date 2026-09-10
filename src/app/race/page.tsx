@@ -132,7 +132,7 @@ export default function RacePage() {
     : 'rounded-full border border-white/20 bg-white/[0.06] backdrop-blur-md px-5 py-2.5 text-[13px] font-semibold text-white/90 transition hover:bg-white/[0.12] disabled:opacity-40';
   const card = light
     ? 'border-white/60 bg-white/45 backdrop-blur-2xl shadow-[0_8px_24px_rgba(0,0,0,0.08)]'
-    : 'border-white/15 bg-black/25 backdrop-blur-2xl shadow-[0_8px_24px_rgba(0,0,0,0.35)]';
+    : 'border-white/15 bg-black/60 backdrop-blur-2xl shadow-[0_8px_24px_rgba(0,0,0,0.35)]';
   const muted = light ? 'text-black/50' : 'text-white/50';
   const faint = light ? 'text-black/40' : 'text-white/40';
   const faint2 = light ? 'text-black/60' : 'text-white/60';
@@ -411,8 +411,11 @@ export default function RacePage() {
           </Link>
           <div className="flex items-center gap-2 text-[12px] font-medium">
             <Link href="/" aria-label="Home"
-              className={`rounded-full border px-4 py-1.5 font-game text-[12px] font-bold tracking-wider transition ${light ? 'border-black/15 bg-white/40 text-black/70 hover:bg-white/60 hover:text-black' : 'border-white/15 bg-white/[0.06] text-white/70 hover:bg-white/[0.12] hover:text-white'}`}>
-              ⌂ HOME
+              className={`flex items-center gap-1.5 rounded-full border px-4 py-1.5 font-game text-[12px] font-bold tracking-wider transition ${light ? 'border-black/15 bg-white/40 text-black/70 hover:bg-white/60 hover:text-black' : 'border-white/15 bg-white/[0.06] text-white/70 hover:bg-white/[0.12] hover:text-white'}`}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M3 10.5 12 3l9 7.5" /><path d="M5 9.5V21h5v-6h4v6h5V9.5" />
+              </svg>
+              HOME
             </Link>
             <button onClick={toggleTheme} aria-label={light ? 'Switch to dark mode' : 'Switch to light mode'} title={light ? 'Switch to dark mode' : 'Switch to light mode'}
               className={`relative h-7 w-[54px] rounded-full border transition-colors duration-300 ${light ? 'border-black/15 bg-black/10' : 'border-white/15 bg-white/10'}`}>
@@ -515,7 +518,7 @@ export default function RacePage() {
         )}
 
         {showSetup && (
-          <section className={`game-typing lobby-home-fonts relative z-10 mt-4 rounded-3xl border p-5 backdrop-blur-3xl md:p-6 ${light ? 'border-white/60 bg-white/50 shadow-[0_8px_24px_rgba(0,0,0,0.08)]' : 'border-[#3B82F6]/20 bg-black/45 shadow-[0_8px_32px_rgba(59,130,246,0.08)]'}`}>
+          <section className={`game-typing lobby-home-fonts relative z-10 mt-4 rounded-3xl border p-5 backdrop-blur-3xl md:p-6 ${light ? 'border-white/60 bg-white/50 shadow-[0_8px_24px_rgba(0,0,0,0.08)]' : 'border-[#3B82F6]/20 bg-black/60 shadow-[0_8px_32px_rgba(59,130,246,0.08)]'}`}>
             {inviteCode && (
               <p className={`mb-4 rounded-xl border px-4 py-3 text-[15px] font-bold ${light ? 'border-blue-600/30 bg-blue-500/10 text-black/80' : 'border-[#3B82F6]/25 bg-[#3B82F6]/[0.07] text-white/90'}`}>
                 Invited to room {inviteCode}{mpDuration > 0 ? ` · ${mpDuration} min timed` : ' · Sprint'} — set your name, pick a car, hit Join.
@@ -586,7 +589,7 @@ export default function RacePage() {
         )}
 
         {showLobby && (
-          <section className={`game-typing lobby-home-fonts relative z-10 mt-4 rounded-3xl border p-5 backdrop-blur-3xl md:p-6 ${light ? 'border-white/60 bg-white/50 shadow-[0_8px_24px_rgba(0,0,0,0.08)]' : 'border-[#3B82F6]/20 bg-black/45 shadow-[0_8px_32px_rgba(59,130,246,0.08)]'}`}>
+          <section className={`game-typing lobby-home-fonts relative z-10 mt-4 rounded-3xl border p-5 backdrop-blur-3xl md:p-6 ${light ? 'border-white/60 bg-white/50 shadow-[0_8px_24px_rgba(0,0,0,0.08)]' : 'border-[#3B82F6]/20 bg-black/60 shadow-[0_8px_32px_rgba(59,130,246,0.08)]'}`}>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className={`font-game text-[13px] font-bold tracking-widest ${light ? 'text-black/70' : 'text-[#3B82F6] [text-shadow:0_0_12px_rgba(59,130,246,0.5)]'}`}>LOBBY · ROOM {roomCode} · {durLabel(roomDuration)}</p>
@@ -656,7 +659,7 @@ export default function RacePage() {
 
         {showTrack && (
           <>
-            <section className={`relative z-10 mt-4 overflow-hidden rounded-2xl border backdrop-blur-2xl ${light ? 'border-white/60 bg-white/45' : 'border-white/15 bg-black/40'}`}>
+            <section className={`relative z-10 mt-4 overflow-hidden rounded-2xl border backdrop-blur-2xl ${light ? 'border-white/60 bg-white/45' : 'border-white/15 bg-black/60'}`}>
               <WeatherCanvas weather={activeWeather.id} light={light} />
               <div className={`relative z-[6] flex items-center justify-between gap-2 border-b px-4 py-2.5 text-[11px] ${light ? 'border-black/10 text-black/60' : 'border-white/10 text-white/55'}`}>
                 <span className="truncate font-medium">
@@ -684,7 +687,7 @@ export default function RacePage() {
               </div>
             </section>
 
-            <section className={`relative z-10 mt-4 rounded-2xl border p-5 backdrop-blur-3xl md:p-7 ${light ? 'border-white/60 bg-white/45' : 'border-white/15 bg-black/40'}`} onClick={smartFocus}>
+            <section className={`relative z-10 mt-4 rounded-2xl border p-5 backdrop-blur-3xl md:p-7 ${light ? 'border-white/60 bg-white/45' : 'border-white/15 bg-black/60'}`} onClick={smartFocus}>
               {engine.phase === 'countdown' && (
                 <div className={`absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-2xl backdrop-blur-[2px] ${light ? 'bg-white/80' : 'bg-black/70'}`}>
                   <RaceLights remaining={engine.countdown} large />
