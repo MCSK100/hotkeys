@@ -684,7 +684,7 @@ export default function RacePage() {
               </div>
             </section>
 
-            <section className={`relative z-10 mt-4 rounded-2xl border p-5 backdrop-blur-2xl md:p-7 ${light ? 'border-white/60 bg-white/45' : 'border-white/15 bg-black/25'}`} onClick={smartFocus}>
+            <section className={`relative z-10 mt-4 rounded-2xl border p-5 backdrop-blur-3xl md:p-7 ${light ? 'border-white/60 bg-white/45' : 'border-white/15 bg-black/25'}`} onClick={smartFocus}>
               {engine.phase === 'countdown' && (
                 <div className={`absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-2xl backdrop-blur-[2px] ${light ? 'bg-white/80' : 'bg-black/70'}`}>
                   <RaceLights remaining={engine.countdown} large />
@@ -726,7 +726,7 @@ export default function RacePage() {
                         return (
                           <span key={i} id={`tc-${i}`}>
                             {cur && <span className={`blink -ml-[2px] inline-block h-[1.15em] w-[3px] translate-y-[4px] ${light ? 'bg-cyan-600' : 'bg-cyan-300'}`} />}
-                            <span className={wrong ? (light ? 'rounded bg-red-600 text-white shadow-[0_0_10px_rgba(239,68,68,0.8)]' : 'rounded bg-red-500 px-0.5 text-white shadow-[0_0_12px_rgba(239,68,68,0.9)]') : done ? (light ? 'font-bold text-cyan-600 [text-shadow:0_0_8px_rgba(6,182,212,0.4)]' : 'font-bold text-[#00E5FF] [text-shadow:0_0_10px_rgba(0,229,255,0.7)]') : cur ? (light ? 'rounded bg-amber-400 px-0.5 font-bold text-black shadow-[0_0_12px_rgba(251,191,36,0.9)]' : 'rounded bg-cyan-400 px-0.5 font-bold text-black shadow-[0_0_12px_rgba(34,211,238,0.9)]') : (light ? 'font-semibold text-black/55' : 'font-semibold text-white/80')}>
+                            <span className={wrong ? (light ? 'rounded bg-red-600 text-white shadow-[0_0_10px_rgba(239,68,68,0.8)]' : 'rounded bg-red-500 px-0.5 text-white shadow-[0_0_12px_rgba(239,68,68,0.9)]') : done ? (light ? 'font-bold text-blue-600 [text-shadow:0_0_8px_rgba(37,99,235,0.4)]' : 'font-bold text-[#60A5FA] [text-shadow:0_0_10px_rgba(96,165,250,0.7)]') : cur ? (light ? 'rounded bg-amber-400 px-0.5 font-bold text-black shadow-[0_0_12px_rgba(251,191,36,0.9)]' : 'rounded bg-cyan-400 px-0.5 font-bold text-black shadow-[0_0_12px_rgba(34,211,238,0.9)]') : (light ? 'font-semibold text-black/55' : 'font-semibold text-white/80')}>
                               {ch}
                             </span>
                           </span>
