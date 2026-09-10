@@ -202,7 +202,6 @@ export function WeatherPicker({ value, onChange, small, light }: { value: Weathe
   const idle = light ? 'border-black/15 text-black/60 hover:border-black/40 hover:text-black' : 'border-white/15 text-white/60 hover:border-white/40 hover:text-white';
   return (
     <span className="inline-flex flex-wrap items-center gap-1.5">
-      {!small && <span className={`mr-1 text-[11px] font-medium ${light ? 'text-black/50' : 'text-white/50'}`}>Track</span>}
       {WEATHER_IDS.map((id) => (
         <button key={id} onClick={() => onChange(id)} title={WEATHERS[id].name}
           className={`rounded-full font-medium transition ${small ? 'px-3 py-1.5 text-[11px]' : 'px-4 py-2 text-[12px]'} ${value === id ? active : `border ${idle}`}`}>
