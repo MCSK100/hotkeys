@@ -318,6 +318,10 @@ export default function RacePage() {
 
   const myPos = racers.findIndex((r) => r.you) + 1;
   const allFinished = inRoom && racers.length >= 1 && racers.every((r) => r.finished);
+  const hostPlayer = players.find((p) => p.id === hostId);
+  const hostName = hostPlayer
+    ? (hostPlayer.id === myId ? `${displayName} (YOU)` : hostPlayer.name)
+    : (host || isHost ? `${displayName} (YOU)` : '…');
 
   useEffect(() => {
     if (chat.length > prevChatLen.current) {
@@ -586,6 +590,7 @@ export default function RacePage() {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className={`font-game text-[13px] font-bold tracking-widest ${muted}`}>LOBBY · ROOM {roomCode} · {durLabel(roomDuration)}</p>
+                <p className={`mt-1 font-game text-[13px] font-bold tracking-widest ${light ? 'text-amber-700' : 'text-amber-300'}`}>👑 HOST · {hostName}</p>
                 <p className="mt-1 font-game text-4xl font-black tracking-wide md:text-5xl"><span className={light ? 'text-emerald-600 [text-shadow:0_0_18px_rgba(16,185,129,0.45)]' : 'text-[#C6FF00] [text-shadow:0_0_22px_rgba(198,255,0,0.65)]'}>Waiting for racers</span></p>
               </div>
               <div className="flex gap-2">
