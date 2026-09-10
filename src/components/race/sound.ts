@@ -1,4 +1,16 @@
 let ctx: AudioContext | null = null;
+let soundEnabled = true;
+
+export function setSoundEnabled(v: boolean) {
+  soundEnabled = v;
+  if (!v) {
+    try { revAudio?.pause(); } catch { /* ignore */ }
+    try { if (cheerAudio) cheerAudio.pause(); } catch { /* ignore */ }
+    try { if (ctx && ctx.state === 'running') void ctx.suspend(); } catch { /* ignore */ }
+  } else {
+    try { if (ctx && ctx.state === 'suspended') void ctx.resume(); } catch { /* ignore */ }
+  }
+}
 
 function ac(): AudioContext | null {
   try {
@@ -13,6 +25,7 @@ function ac(): AudioContext | null {
 }
 
 function tone(freq: number, dur: number, vol = 0.16, delay = 0) {
+  if (!soundEnabled) return;
   const c = ac();
   if (!c) return;
   const t = c.currentTime + delay;
@@ -33,6 +46,7 @@ let cheerAudio: HTMLAudioElement | null = null;
 
 /** Winner crowd cheer clip. */
 export function playClaps() {
+  if (!soundEnabled) return;
   try {
     if (!cheerAudio) {
       cheerAudio = new Audio('/dragon-studio-crowd-cheer-406646.mp3');
@@ -64,6 +78,7 @@ let revTimer: ReturnType<typeof setTimeout> | null = null;
 
 /** Engine-roar GO sound using the local race-engine clip (auto-stops). */
 export function engineRev() {
+  if (!soundEnabled) return;
   try {
     if (!revAudio) {
       revAudio = new Audio('/sounds/race-engine.mp3');

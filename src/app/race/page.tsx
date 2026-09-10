@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTypingEngine } from '@/hooks/useTypingEngine';
 import { useRoom } from '@/hooks/useWebSocketSync';
 import { CARS, loadHistory, makeRoomCode, saveResult, sharedQuote, sharedTimedText } from '@/components/race/quotes';
-import { countBeep, engineRev, goBeep, chatPop } from '@/components/race/sound';
+import { countBeep, engineRev, goBeep, chatPop, setSoundEnabled } from '@/components/race/sound';
 import Car3D from '@/components/race/Car3D';
 import WinnerModal from '@/components/race/WinnerModal';
 import AvatarImage from '@/components/race/AvatarImage';
@@ -128,15 +128,17 @@ export default function RacePage() {
     ? 'rounded-xl bg-black px-5 py-2.5 text-[13px] font-semibold text-white transition hover:bg-black/80 disabled:opacity-40'
     : 'rounded-xl bg-white px-5 py-2.5 text-[13px] font-semibold text-black transition hover:bg-gray-200 disabled:opacity-40';
   const ghostBtn = light
-    ? 'rounded-xl border border-black/15 bg-black/[0.03] px-5 py-2.5 text-[13px] font-semibold text-black/70 transition hover:border-black/40 hover:text-black disabled:opacity-40'
-    : 'rounded-xl border border-white/15 bg-white/[0.04] px-5 py-2.5 text-[13px] font-semibold text-white/80 transition hover:border-white/40 hover:text-white disabled:opacity-40';
-  const card = light ? 'border-black/10 bg-white' : 'border-white/10 bg-white/[0.02]';
+    ? 'rounded-full border border-white/40 bg-white/20 backdrop-blur-md px-5 py-2.5 text-[13px] font-semibold text-black transition hover:bg-white/30 disabled:opacity-40'
+    : 'rounded-full border border-white/20 bg-white/[0.06] backdrop-blur-md px-5 py-2.5 text-[13px] font-semibold text-white/90 transition hover:bg-white/[0.12] disabled:opacity-40';
+  const card = light
+    ? 'border-white/40 bg-white/20 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.12)]'
+    : 'border-white/20 bg-white/[0.06] backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.4)]';
   const muted = light ? 'text-black/50' : 'text-white/50';
   const faint = light ? 'text-black/40' : 'text-white/40';
   const faint2 = light ? 'text-black/60' : 'text-white/60';
   const inputCls = light
-    ? 'border-black/15 bg-black/[0.03] text-black placeholder:text-black/30 focus:border-black/50'
-    : 'border-white/15 bg-black/40 text-white placeholder:text-white/30 focus:border-white/60';
+    ? 'border-white/40 bg-white/20 backdrop-blur-md text-black placeholder:text-black/40 focus:border-black/50'
+    : 'border-white/20 bg-white/[0.06] backdrop-blur-md text-white placeholder:text-white/40 focus:border-white/60';
   const pickActive = light ? 'border-black bg-black text-white' : 'border-white bg-white text-black';
   const pickIdle = light ? 'border-black/15 text-black/60 hover:border-black/40 hover:text-black' : 'border-white/15 text-white/60 hover:border-white/40 hover:text-white';
   const carBtn = (sel: boolean) => light
@@ -224,12 +226,17 @@ export default function RacePage() {
     if (phase === 'countdown' && engine.countdown >= 1 && soundRef.current) countBeep(engine.countdown);
   }, [phase, engine.countdown]);
   useEffect(() => {
-    if (phase === 'racing' && prevPhase.current === 'countdown' && soundRef.current) {
-      goBeep();
-      engineRev();
+    if (phase === 'racing' && prevPhase.current === 'countdown') {
+      if (soundRef.current) {
+        goBeep();
+        engineRev();
+      }
     }
     prevPhase.current = phase;
   }, [phase]);
+  useEffect(() => {
+    setSoundEnabled(soundOn);
+  }, [soundOn]);
   useEffect(() => {
     if (lobbySecs !== null && lobbySecs <= 3 && lobbySecs >= 1 && soundRef.current) countBeep(lobbySecs);
   }, [lobbySecs]);
@@ -382,8 +389,9 @@ export default function RacePage() {
 
   return (
     <main className={`min-h-screen font-body ${light ? 'bg-[#eef0f3] text-[#14171c]' : 'bg-[#08090c] text-[#eceef1]'}`} onClick={smartFocus}>
-      <header className={`sticky top-0 z-20 border-b backdrop-blur ${light ? 'border-black/10 bg-white/90' : 'border-white/[0.07] bg-[#0b0e14]/90'}`}>
-        <div className="mx-auto flex h-[60px] max-w-6xl items-center justify-between px-4">
+      <div className="sticky top-3 z-20 px-4">
+      <header className={`mx-auto max-w-6xl rounded-full border shadow-xl backdrop-blur-xl ${light ? 'border-white/40 bg-white/30 shadow-[0_8px_32px_rgba(0,0,0,0.12)]' : 'border-white/20 bg-black/30 shadow-[0_8px_32px_rgba(0,0,0,0.5)]'}`}>
+        <div className="flex h-[60px] items-center justify-between px-5">
           <Link href="/" className="flex items-center gap-2">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/hotkeyslogo.png" alt="HotKeys" className="h-9 w-auto object-contain" />
@@ -409,10 +417,9 @@ export default function RacePage() {
                 Chat{chat.length > 0 ? ` · ${chat.length}` : ''}
               </button>
             )}
-            <button onClick={() => setSoundOn((s) => !s)} aria-label="Toggle sound"
-              className={`rounded-full border px-3 py-1.5 ${soundOn ? (light ? 'border-black/30 text-black' : 'border-white/30 text-white') : (light ? 'border-black/15 text-black/50' : 'border-white/15 text-white/50')}`}>
-              {soundOn ? 'Sound on' : 'Muted'}
-            </button>
+            <button onClick={() => setSoundOn((s) => !s)} aria-label="Toggle sound" aria-pressed={soundOn}
+              className={`rounded-full border-2 px-4 py-1.5 font-game text-[12px] font-bold tracking-wider transition ${soundOn ? (light ? 'border-lime-600 bg-lime-400 text-black shadow-[0_0_12px_rgba(132,204,22,0.6)]' : 'border-[#C6FF00] bg-[#C6FF00] text-black shadow-[0_0_12px_rgba(198,255,0,0.6)]') : (light ? 'border-red-400 bg-red-100 text-red-700' : 'border-red-500/60 bg-red-500/15 text-red-300')}`}>
+              {soundOn ? '🔊 SOUND ON' : '🔇 MUTED'}</button>
             {roomCode && mode === 'multiplayer' && <span className={`rounded-full border px-3 py-1.5 ${light ? 'border-black/15 bg-black/[0.04] text-black/80' : 'border-white/15 bg-white/[0.06] text-white/80'}`}>Room {roomCode}</span>}
             <span className={`rounded-full px-3 py-1.5 ${mode === 'practice' ? (light ? 'bg-black/10 text-black/70' : 'bg-white/10 text-white/70') : connected ? 'bg-emerald-500/15 text-emerald-600' : 'bg-amber-500/15 text-amber-600'}`}>
               {mode === 'practice' ? 'Solo' : connected ? `Live · ${players.length}` : 'Connecting'}
@@ -420,6 +427,7 @@ export default function RacePage() {
           </div>
         </div>
       </header>
+      </div>
 
       <div className="mx-auto max-w-6xl px-4 py-6">
         <div className="flex flex-wrap items-center gap-2">
@@ -477,7 +485,10 @@ export default function RacePage() {
         )}
 
         {showSetup && (
-          <section className={`mt-4 rounded-2xl border p-5 ${card}`}>
+          <section className={`relative mt-4 overflow-hidden rounded-3xl border p-5 md:p-6 ${card}`}>
+            <video autoPlay muted loop playsInline src="/lobby-video.mp4" className="pointer-events-none absolute inset-0 h-full w-full object-cover" />
+            <div className={`absolute inset-0 ${light ? 'bg-white/60' : 'bg-black/60'}`} />
+            <div className="relative z-10">
             {inviteCode && (
               <p className={`mb-4 rounded-xl border px-4 py-3 text-[12px] ${light ? 'border-black/15 bg-black/[0.03] text-black/80' : 'border-white/15 bg-white/[0.05] text-white/80'}`}>
                 Invited to room {inviteCode}{mpDuration > 0 ? ` · ${mpDuration} min timed` : ' · Sprint'} — set your name, pick a car, hit Join.
@@ -544,15 +555,19 @@ export default function RacePage() {
                 </>
               )}
             </div>
+            </div>
           </section>
         )}
 
         {showLobby && (
-          <section className={`mt-4 rounded-2xl border p-5 ${light ? 'border-black/10 bg-white' : 'border-white/10 bg-[#0b0e14]'}`}>
+          <section className={`relative mt-4 overflow-hidden rounded-3xl border p-5 md:p-6 ${card}`}>
+            <video autoPlay muted loop playsInline src="/lobby-video.mp4" className="pointer-events-none absolute inset-0 h-full w-full object-cover" />
+            <div className={`absolute inset-0 ${light ? 'bg-white/60 backdrop-blur-[2px]' : 'bg-black/60 backdrop-blur-[2px]'}`} />
+            <div className="relative z-10">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className={`text-[11px] font-medium ${muted}`}>Lobby · Room {roomCode} · {durLabel(roomDuration)}</p>
-                <p className="mt-1 text-3xl font-semibold tracking-tight">Waiting for racers</p>
+                <p className="mt-1 font-game text-3xl font-black tracking-wide md:text-4xl"><span className={light ? 'text-black' : 'bg-gradient-to-r from-[#C6FF00] via-cyan-300 to-fuchsia-400 bg-clip-text text-transparent'}>Waiting for racers</span></p>
               </div>
               <div className="flex gap-2">
                 {inRoom && (
@@ -612,6 +627,7 @@ export default function RacePage() {
                 <button onClick={() => { setJoined(false); setGo(false); }} className={ghostBtn}>Leave</button>
               </div>
             )}
+            </div>
           </section>
         )}
 
@@ -649,7 +665,7 @@ export default function RacePage() {
               {engine.phase === 'countdown' && (
                 <div className={`absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-2xl backdrop-blur-[2px] ${light ? 'bg-white/80' : 'bg-black/70'}`}>
                   <RaceLights remaining={engine.countdown} large />
-                  <p className="text-7xl font-extrabold tabular-nums">{engine.countdown > 0 ? engine.countdown : 'GO'}</p>
+                  <p className="font-game text-7xl font-black tabular-nums [text-shadow:0_0_24px_rgba(198,255,0,0.6)]">{engine.countdown > 0 ? engine.countdown : 'GO'}</p>
                   <p className={`text-[11px] font-semibold uppercase tracking-[0.2em] ${faint2}`}>{engine.countdown > 0 ? 'On your marks' : 'Go go go'}</p>
                 </div>
               )}
@@ -671,7 +687,7 @@ export default function RacePage() {
                 </p>
                 {engine.isTimed && <p className="shrink-0 text-sm font-semibold tabular-nums">{fmt(engine.timeLeft)}</p>}
               </div>
-              <p className="max-h-[240px] overflow-y-auto text-xl leading-[2.75rem] md:text-[22px]" aria-live="polite" style={{ fontFamily: "'Inter','Space Grotesk',system-ui,sans-serif", letterSpacing: '0.045em' }}>
+              <p className="game-typing max-h-[300px] overflow-y-auto text-[26px] font-bold leading-[3rem] md:text-[30px] md:leading-[3.4rem]" aria-live="polite" style={{ letterSpacing: '0.03em' }}>
                 {words.map(({ word, start }) => {
                   const end = start + word.length;
                   const isCurrent = racing && charIndex >= start && charIndex < end;
@@ -685,7 +701,7 @@ export default function RacePage() {
                         return (
                           <span key={i} id={`tc-${i}`}>
                             {cur && <span className={`blink -ml-[2px] inline-block h-[1.15em] w-[3px] translate-y-[4px] ${light ? 'bg-emerald-600' : 'bg-emerald-300'}`} />}
-                            <span className={wrong ? (light ? 'bg-red-600/10 text-red-600 underline decoration-red-600/70 underline-offset-4' : 'bg-red-500/15 text-red-400 underline decoration-red-400/70 underline-offset-4') : done ? (light ? 'font-medium text-emerald-700' : 'font-medium text-emerald-300') : (light ? 'text-black/60' : 'text-white/55')}>
+                            <span className={wrong ? (light ? 'rounded bg-red-600 text-white shadow-[0_0_10px_rgba(239,68,68,0.8)]' : 'rounded bg-red-500 px-0.5 text-white shadow-[0_0_12px_rgba(239,68,68,0.9)]') : done ? (light ? 'font-bold text-lime-600 [text-shadow:0_0_8px_rgba(132,204,22,0.4)]' : 'font-bold text-[#C6FF00] [text-shadow:0_0_10px_rgba(198,255,0,0.7)]') : cur ? (light ? 'rounded bg-amber-400 px-0.5 font-bold text-black shadow-[0_0_12px_rgba(251,191,36,0.9)]' : 'rounded bg-cyan-400 px-0.5 font-bold text-black shadow-[0_0_12px_rgba(34,211,238,0.9)]') : (light ? 'font-semibold text-black/55' : 'font-semibold text-white/80')}>
                               {ch}
                             </span>
                           </span>
@@ -722,7 +738,7 @@ export default function RacePage() {
                     <p className={`text-[11px] font-medium ${muted}`}>
                       {mode === 'practice' ? `${duration} min sprint — complete` : mpTimed ? `${roomDuration} min timed — complete · P0${myPos}` : `Results — P0${myPos} finish`}
                     </p>
-                    <p className="mt-1 text-4xl font-semibold tracking-tight">WPM {Math.round(wpm)} <span className={`text-xl font-normal ${light ? 'text-black/50' : 'text-white/50'}`}>· {Math.round(engine.acc)}% acc</span></p>
+                    <p className="mt-1 font-game text-4xl font-black tracking-wide md:text-5xl">WPM {Math.round(wpm)} <span className={`text-xl font-bold ${light ? 'text-black/50' : 'text-[#C6FF00]'}`}>· {Math.round(engine.acc)}% acc</span></p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     {mode === 'practice' ? (

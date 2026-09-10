@@ -17,18 +17,20 @@ function UploadPlaceholder({ size, ring, light }: { size: number; ring?: string;
 }
 
 export default function AvatarImage({ wiki, size = 28, ring, light }: { wiki: string; size?: number; ring?: string; light?: boolean }) {
-  const def = avatarDefOf(wiki);
-  const [src, setSrc] = useState<string | null>(null);
+  const isCustom = !!wiki && (wiki.startsWith('data:') || wiki.startsWith('blob:') || /^https?:\/\//i.test(wiki));
+  const def = avatarDefOf(isCustom ? '' : wiki);
+  const [src, setSrc] = useState<string | null>(isCustom ? wiki : null);
   useEffect(() => {
     if (!wiki) return;
+    if (isCustom) { setSrc(wiki); return; }
     let live = true;
     void fetchAvatarThumb(def.wiki).then((s) => { if (live) setSrc(s); });
     return () => { live = false; };
-  }, [def.wiki, wiki]);
+  }, [def.wiki, wiki, isCustom]);
   if (!wiki) return <UploadPlaceholder size={size} ring={ring} light={light} />;
   if (src) {
     // eslint-disable-next-line @next/next/no-img-element
-    return <img src={src} alt={def.name} title="Choose avatar" loading="lazy" referrerPolicy="no-referrer"
+    return <img src={src} alt={isCustom ? 'Custom logo' : def.name} title="Choose avatar" loading="lazy" referrerPolicy="no-referrer"
       className="shrink-0 cursor-pointer rounded-full object-cover transition hover:scale-105" style={{ width: size, height: size, objectPosition: '50% 18%', border: ring ? `2px solid ${ring}` : undefined, background: '#222' }} />;
   }
   return <UploadPlaceholder size={size} ring={ring} light={light} />;

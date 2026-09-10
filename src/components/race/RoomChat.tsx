@@ -34,10 +34,10 @@ export default function RoomChat({
   };
 
   return (
-    <aside className={`fixed bottom-4 right-4 z-40 flex h-[min(52vh,440px)] w-[calc(100%-2rem)] max-w-[330px] flex-col overflow-hidden rounded-2xl border shadow-2xl backdrop-blur-md ${light ? 'border-black/10 bg-white/95 text-black' : 'border-white/10 bg-[#0b0e14]/95 text-white'}`}>
+    <aside className={`fixed bottom-4 right-4 z-40 flex h-[min(78vh,640px)] w-[calc(100%-2rem)] max-w-[370px] flex-col overflow-hidden rounded-2xl border shadow-2xl backdrop-blur-md ${light ? 'border-black/10 bg-white/95 text-black' : 'border-white/10 bg-[#0b0e14]/95 text-white'}`}>
       <div className={`flex items-center justify-between border-b px-4 py-3 ${light ? 'border-black/10' : 'border-white/10'}`}>
         <div>
-          <p className="text-[13px] font-semibold">Room chat</p>
+          <p className="font-game text-[15px] font-bold tracking-wider">💬 ROOM CHAT</p>
           <p className={`text-[11px] ${light ? 'text-black/45' : 'text-white/45'}`}>{messages.length} messages</p>
         </div>
         <button onClick={onClose} aria-label="Close chat" className={`rounded-lg border px-2.5 py-1.5 text-[12px] ${light ? 'border-black/15 text-black/70 hover:border-black/40 hover:text-black' : 'border-white/15 text-white/70 hover:border-white/40 hover:text-white'}`}>✕</button>
@@ -59,7 +59,7 @@ export default function RoomChat({
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={m.text} alt="gif" className="max-h-40 rounded-lg object-cover" loading="lazy" />
                 ) : (
-                  <p className="break-words text-[13px] leading-5">{m.text}</p>
+                  <p className="game-typing break-words text-[15px] font-semibold leading-6">{m.text}</p>
                 )}
                 <p className={`mt-1 text-right text-[9px] ${mine ? (light ? 'text-white/50' : 'text-black/50') : (light ? 'text-black/35' : 'text-white/35')}`}>
                   {new Date(m.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
