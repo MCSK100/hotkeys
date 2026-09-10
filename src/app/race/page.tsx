@@ -725,8 +725,8 @@ export default function RacePage() {
                         const wrong = done && engine.errors[i];
                         return (
                           <span key={i} id={`tc-${i}`}>
-                            {cur && <span className={`blink -ml-[2px] inline-block h-[1.15em] w-[3px] translate-y-[4px] ${light ? 'bg-fuchsia-600' : 'bg-fuchsia-300'}`} />}
-                            <span className={wrong ? (light ? 'rounded bg-red-600 text-white shadow-[0_0_10px_rgba(239,68,68,0.8)]' : 'rounded bg-red-500 px-0.5 text-white shadow-[0_0_12px_rgba(239,68,68,0.9)]') : done ? (light ? 'font-bold text-violet-600 [text-shadow:0_0_8px_rgba(124,58,237,0.4)]' : 'font-bold text-[#A78BFA] [text-shadow:0_0_10px_rgba(167,139,250,0.7)]') : cur ? (light ? 'rounded bg-amber-400 px-0.5 font-bold text-black shadow-[0_0_12px_rgba(251,191,36,0.9)]' : 'rounded bg-cyan-400 px-0.5 font-bold text-black shadow-[0_0_12px_rgba(34,211,238,0.9)]') : (light ? 'font-semibold text-black/55' : 'font-semibold text-white/80')}>
+                            {cur && <span className="blink -ml-[2px] inline-block h-[1.15em] w-[3px] translate-y-[4px] bg-[#3B82F6]" />}
+                            <span className={wrong ? (light ? 'text-red-600 underline decoration-red-600/70 underline-offset-4' : 'text-red-400 underline decoration-red-400/70 underline-offset-4') : done ? 'font-semibold text-[#3B82F6]' : cur ? 'font-bold text-[#3B82F6]' : (light ? 'text-blue-900/45' : 'text-[#93C5FD]/50')}>
                               {ch}
                             </span>
                           </span>
