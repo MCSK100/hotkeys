@@ -395,7 +395,7 @@ export default function RacePage() {
           className="h-full w-full object-cover" style={{ transform: 'translateZ(0)' }}>
           <source src="/lobby-video.mp4" type="video/mp4" />
         </video>
-        <div className={`absolute inset-0 ${light ? 'bg-white/55' : 'bg-black/68'}`} />
+        <div className={`absolute inset-0 backdrop-blur-md ${light ? 'bg-white/55' : 'bg-black/68'}`} />
         <div className={`absolute inset-0 ${light ? 'bg-gradient-to-b from-black/25 via-black/10 to-black/45' : 'bg-gradient-to-b from-black/60 via-black/25 to-black/80'}`} />
       </div>
       <div className="sticky top-3 z-20 px-4">
