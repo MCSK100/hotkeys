@@ -422,9 +422,25 @@ export default function RacePage() {
                 Chat{chat.length > 0 ? ` · ${chat.length}` : ''}
               </button>
             )}
-            <button onClick={() => setSoundOn((s) => !s)} aria-label="Toggle sound" aria-pressed={soundOn}
-              className={`rounded-full border-2 px-4 py-1.5 font-game text-[12px] font-bold tracking-wider transition ${soundOn ? (light ? 'border-lime-600 bg-lime-400 text-black shadow-[0_0_12px_rgba(132,204,22,0.6)]' : 'border-[#C6FF00] bg-[#C6FF00] text-black shadow-[0_0_12px_rgba(198,255,0,0.6)]') : (light ? 'border-red-400 bg-red-100 text-red-700' : 'border-red-500/60 bg-red-500/15 text-red-300')}`}>
-              {soundOn ? '🔊 SOUND ON' : '🔇 MUTED'}</button>
+            <button onClick={() => setSoundOn((s) => !s)} aria-label={soundOn ? 'Mute sound' : 'Unmute sound'} aria-pressed={soundOn} title={soundOn ? 'Mute' : 'Unmute'}
+              className={`flex h-9 w-9 items-center justify-center rounded-full border-2 transition active:scale-95 ${soundOn ? (light ? 'border-lime-600 bg-lime-400 text-black shadow-[0_0_14px_rgba(132,204,22,0.7)]' : 'border-[#C6FF00] bg-[#C6FF00] text-black shadow-[0_0_14px_rgba(198,255,0,0.7)]') : (light ? 'border-black/20 bg-white/40 text-black/40' : 'border-white/20 bg-white/5 text-white/40')}`}>
+              <style>{`@keyframes eqB { 0%,100% { transform: scaleY(0.4); } 50% { transform: scaleY(1); } } @keyframes muteShake { 0%,100% { transform: rotate(0); } 25% { transform: rotate(-12deg); } 75% { transform: rotate(12deg); } }`}</style>
+              {soundOn ? (
+                <span className="flex items-end gap-[2.5px]" aria-hidden>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3z" /></svg>
+                  <span className="flex items-end gap-[2px]">
+                    <span className="w-[3px] rounded-full bg-current" style={{ height: 12, transformOrigin: 'bottom', animation: 'eqB .7s ease-in-out infinite' }} />
+                    <span className="w-[3px] rounded-full bg-current" style={{ height: 12, transformOrigin: 'bottom', animation: 'eqB .7s ease-in-out .15s infinite' }} />
+                    <span className="w-[3px] rounded-full bg-current" style={{ height: 12, transformOrigin: 'bottom', animation: 'eqB .7s ease-in-out .3s infinite' }} />
+                  </span>
+                </span>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ animation: 'muteShake 1.2s ease-in-out infinite' }} aria-hidden>
+                  <path d="M11 5 6 9H2v6h4l5 5V5z" fill="currentColor" stroke="none" />
+                  <line x1="23" y1="9" x2="17" y2="15" /><line x1="17" y1="9" x2="23" y2="15" />
+                </svg>
+              )}
+            </button>
             {roomCode && mode === 'multiplayer' && <span className={`rounded-full border px-3 py-1.5 ${light ? 'border-black/15 bg-black/[0.04] text-black/80' : 'border-white/15 bg-white/[0.06] text-white/80'}`}>Room {roomCode}</span>}
             <span className={`rounded-full px-3 py-1.5 ${mode === 'practice' ? (light ? 'bg-black/10 text-black/70' : 'bg-white/10 text-white/70') : connected ? 'bg-emerald-500/15 text-emerald-600' : 'bg-amber-500/15 text-amber-600'}`}>
               {mode === 'practice' ? 'Solo' : connected ? `Live · ${players.length}` : 'Connecting'}
@@ -490,70 +506,70 @@ export default function RacePage() {
         )}
 
         {showSetup && (
-          <section className={`relative z-10 mt-4 rounded-3xl border p-5 md:p-6 ${card}`}>
+          <section className={`game-typing relative z-10 mt-4 rounded-3xl border p-5 md:p-6 ${card}`}>
             {inviteCode && (
-              <p className={`mb-4 rounded-xl border px-4 py-3 text-[12px] ${light ? 'border-black/15 bg-black/[0.03] text-black/80' : 'border-white/15 bg-white/[0.05] text-white/80'}`}>
+              <p className={`mb-4 rounded-xl border px-4 py-3 text-[15px] font-bold ${light ? 'border-black/15 bg-black/[0.03] text-black/80' : 'border-white/15 bg-white/[0.05] text-white/80'}`}>
                 Invited to room {inviteCode}{mpDuration > 0 ? ` · ${mpDuration} min timed` : ' · Sprint'} — set your name, pick a car, hit Join.
               </p>
             )}
-            <p className={`text-[11px] font-medium ${muted}`}>1 · Driver name + avatar</p>
+            <p className={`font-game text-[14px] font-bold tracking-wider ${muted}`}>1 · DRIVER NAME + AVATAR</p>
             <div className="mt-2 flex items-center gap-2">
               <button onClick={() => setAvatarOpen(true)} title="Choose avatar" aria-label="Choose avatar" className="shrink-0 rounded-full transition hover:scale-105">
-                <AvatarImage wiki={avatar} size={42} light={light} />
+                <AvatarImage wiki={avatar} size={46} light={light} />
               </button>
               <input value={name} data-name="1" maxLength={14}
                 onChange={(e) => { setName(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '')); setNameTouched(true); }}
                 placeholder="Enter your name to race" aria-label="Racer name"
-                className={`w-52 rounded-xl border px-3 py-2.5 text-sm outline-none ${inputCls} ${nameTouched && !nameValid ? (light ? '!border-red-500' : '!border-red-400') : ''}`} />
+                className={`w-60 rounded-xl border px-4 py-3 text-[16px] font-bold outline-none ${inputCls} ${nameTouched && !nameValid ? (light ? '!border-red-500' : '!border-red-400') : ''}`} />
             </div>
             {nameTouched && !nameValid && (
-              <p className="mt-1.5 text-[12px] font-medium text-red-500">Please enter your name to join the race.</p>
+              <p className="mt-1.5 text-[14px] font-bold text-red-500">Please enter your name to join the race.</p>
             )}
-            <p className={`mt-5 text-[11px] font-medium ${muted}`}>2 · Choose your car</p>
+            <p className={`mt-5 font-game text-[14px] font-bold tracking-wider ${muted}`}>2 · CHOOSE YOUR CAR</p>
             <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-6">
               {CARS.map((c) => (
                 <button key={c.id} onClick={() => setCarId(c.id)}
                   className={`rounded-xl border p-2 text-left transition ${carBtn(carId === c.id)}`}>
                   <Car3D color={c.color} size="sm" />
-                  <span className={`mt-1.5 block text-[11px] font-semibold ${light ? (carId === c.id ? 'text-black' : 'text-black/70') : (carId === c.id ? 'text-white' : 'text-white/70')}`}>{c.name}</span>
+                  <span className={`mt-1.5 block font-game text-[13px] font-bold tracking-wide ${light ? (carId === c.id ? 'text-black' : 'text-black/70') : (carId === c.id ? 'text-white' : 'text-white/70')}`}>{c.name}</span>
                 </button>
               ))}
             </div>
             {inviteCode ? (
               <div className={`mt-5 rounded-xl border px-4 py-3 ${light ? 'border-black/10 bg-black/[0.03]' : 'border-white/10 bg-black/40'}`}>
-                <p className={`text-[11px] font-medium ${muted}`}>Host settings · locked</p>
-                <p className={`mt-2 text-[12px] ${light ? 'text-black/80' : 'text-white/80'}`}>Mode · {durLabel(mpDuration)} · {(WEATHERS[mpWeather]).name}</p>
+                <p className={`font-game text-[13px] font-bold tracking-wider ${muted}`}>HOST SETTINGS · LOCKED</p>
+                <p className={`mt-2 text-[16px] font-bold ${light ? 'text-black/80' : 'text-white/80'}`}>Mode · {durLabel(mpDuration)} · {(WEATHERS[mpWeather]).name}</p>
               </div>
             ) : (
               <>
-                <p className={`mt-5 text-[11px] font-medium ${muted}`}>3 · Race length</p>
+                <p className={`mt-5 font-game text-[14px] font-bold tracking-wider ${muted}`}>3 · RACE LENGTH</p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {DURATIONS.map((mins) => (
                     <button key={mins} onClick={() => setMpDuration(mins)}
-                      className={`rounded-full border px-4 py-2 text-[12px] font-medium transition ${mpDuration === mins ? pickActive : pickIdle}`}>
+                      className={`rounded-full border px-5 py-2.5 font-game text-[14px] font-bold transition ${mpDuration === mins ? pickActive : pickIdle}`}>
                       {durLabel(mins)}
                     </button>
                   ))}
                 </div>
-                <p className={`mt-5 text-[11px] font-medium ${muted}`}>4 · Track weather</p>
+                <p className={`mt-5 font-game text-[14px] font-bold tracking-wider ${muted}`}>4 · TRACK WEATHER</p>
                 <div className="mt-2">
                   <WeatherPicker light={light} value={mpWeather} onChange={setMpWeather} />
                 </div>
               </>
             )}
-            <p className={`mt-5 text-[11px] font-medium ${muted}`}>{inviteCode ? '3 · Enter the grid' : '5 · Enter the grid'}</p>
+            <p className={`mt-5 font-game text-[14px] font-bold tracking-wider ${muted}`}>{inviteCode ? '3 · ENTER THE GRID' : '5 · ENTER THE GRID'}</p>
             <div className="mt-2 flex flex-wrap items-center gap-2">
               {inviteCode ? (
-                <button onClick={() => joinAs(inviteCode)} disabled={!nameValid} title={!nameValid ? 'Enter your name first' : undefined} className={primaryBtn}>
+                <button onClick={() => joinAs(inviteCode)} disabled={!nameValid} title={!nameValid ? 'Enter your name first' : undefined} className={`${primaryBtn} font-game text-[15px] font-bold tracking-wide`}>
                   Join grid {inviteCode} →
                 </button>
               ) : (
                 <>
-                  <button onClick={createRoom} disabled={!nameValid} title={!nameValid ? 'Enter your name first' : undefined} className={primaryBtn}>Create room →</button>
-                  <span className={`text-[11px] ${faint}`}>or</span>
+                  <button onClick={createRoom} disabled={!nameValid} title={!nameValid ? 'Enter your name first' : undefined} className={`${primaryBtn} font-game text-[15px] font-bold tracking-wide`}>Create room →</button>
+                  <span className={`font-game text-[13px] font-bold ${faint}`}>or</span>
                   <input value={joinCode} data-room="1" onChange={(e) => setJoinCode(e.target.value.toUpperCase())} placeholder="CODE" aria-label="Room code"
-                    className={`w-28 rounded-xl border px-3 py-2 text-sm outline-none ${inputCls}`} />
-                  <button onClick={() => joinAs(joinCode)} disabled={!nameValid || !joinCode.trim()} title={!nameValid ? 'Enter your name first' : undefined} className={ghostBtn}>Join →</button>
+                    className={`w-32 rounded-xl border px-4 py-3 font-game text-[15px] font-bold outline-none ${inputCls}`} />
+                  <button onClick={() => joinAs(joinCode)} disabled={!nameValid || !joinCode.trim()} title={!nameValid ? 'Enter your name first' : undefined} className={`${ghostBtn} font-game text-[15px] font-bold`}>Join →</button>
                 </>
               )}
             </div>
@@ -561,11 +577,11 @@ export default function RacePage() {
         )}
 
         {showLobby && (
-          <section className={`relative z-10 mt-4 rounded-3xl border p-5 md:p-6 ${card}`}>
+          <section className={`game-typing relative z-10 mt-4 rounded-3xl border p-5 md:p-6 ${card}`}>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className={`text-[11px] font-medium ${muted}`}>Lobby · Room {roomCode} · {durLabel(roomDuration)}</p>
-                <p className="mt-1 font-game text-3xl font-black tracking-wide md:text-4xl"><span className={light ? 'text-black' : 'bg-gradient-to-r from-[#C6FF00] via-cyan-300 to-fuchsia-400 bg-clip-text text-transparent'}>Waiting for racers</span></p>
+                <p className={`font-game text-[13px] font-bold tracking-widest ${muted}`}>LOBBY · ROOM {roomCode} · {durLabel(roomDuration)}</p>
+                <p className="mt-1 font-game text-4xl font-black tracking-wide md:text-5xl"><span className={light ? 'text-black' : 'bg-gradient-to-r from-[#C6FF00] via-cyan-300 to-fuchsia-400 bg-clip-text text-transparent'}>Waiting for racers</span></p>
               </div>
               <div className="flex gap-2">
                 {inRoom && (
@@ -575,14 +591,14 @@ export default function RacePage() {
                   className={ghostBtn}>{copied ? 'Link copied ✓' : 'Copy invite link'}</button>
               </div>
             </div>
-            <p className={`mt-2 break-all text-[11px] ${muted}`}>{inviteLink}</p>
+            <p className={`mt-2 break-all font-game text-[13px] font-bold ${muted}`}>{inviteLink}</p>
             {host && lobbySecs === null && (
               <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
                 <span className="flex items-center gap-1.5">
-                  <span className={`mr-1 text-[11px] ${muted}`}>Race length</span>
+                  <span className={`mr-1 font-game text-[13px] font-bold tracking-wider ${muted}`}>RACE LENGTH</span>
                   {DURATIONS.map((mins) => (
                     <button key={mins} onClick={() => pushDuration(mins)}
-                      className={`rounded-full border px-3 py-1.5 text-[11px] font-medium transition ${roomDuration === mins ? pickActive : pickIdle}`}>
+                      className={`rounded-full border px-4 py-2 font-game text-[13px] font-bold transition ${roomDuration === mins ? pickActive : pickIdle}`}>
                       {durLabel(mins)}
                     </button>
                   ))}
@@ -592,35 +608,35 @@ export default function RacePage() {
             )}
             <div className="mt-4 grid gap-2 sm:grid-cols-2">
               {players.length === 0 && (
-                <p className={`text-[12px] ${muted}`}>
+                <p className={`text-[15px] font-bold ${muted}`}>
                   {connected ? 'Connecting… drivers appear here.' : 'Server offline — start it with `npm run server`, then rejoin.'}
                 </p>
               )}
               {players.map((p) => (
-                <div key={p.id} className={`flex items-center gap-3 rounded-xl border px-3 py-2 ${light ? 'border-black/10 bg-black/[0.03]' : 'border-white/10 bg-black/40'}`}>
-                  <AvatarImage wiki={p.id === myId ? avatar : p.avatar} size={30} light={light} />
+                <div key={p.id} className={`flex items-center gap-3 rounded-xl border px-4 py-3 ${light ? 'border-black/10 bg-black/[0.03]' : 'border-white/10 bg-black/40'}`}>
+                  <AvatarImage wiki={p.id === myId ? avatar : p.avatar} size={34} light={light} />
                   <Car3D color={carOf(p.id === myId ? carId : p.car).color} size="sm" />
-                  <span className="text-sm font-semibold">{p.id === myId ? `${displayName} (YOU)` : p.name}</span>
+                  <span className="font-game text-[16px] font-bold tracking-wide">{p.id === myId ? `${displayName} (YOU)` : p.name}</span>
                   {(hostId ? p.id === hostId : (p.id === myId && isHost)) && (
-                    <span className={`rounded-md px-1.5 py-0.5 text-[10px] font-bold ${light ? 'bg-black text-white' : 'bg-white text-black'}`}>HOST</span>
+                    <span className={`rounded-md px-2 py-1 font-game text-[11px] font-bold ${light ? 'bg-black text-white' : 'bg-white text-black'}`}>HOST</span>
                   )}
-                  <span className="ml-auto text-[10px] font-medium text-emerald-600">Ready</span>
+                  <span className="ml-auto font-game text-[12px] font-bold text-emerald-600">Ready</span>
                 </div>
               ))}
             </div>
             {lobbySecs !== null ? (
               <div className={`mt-5 rounded-xl border px-4 py-4 text-center ${light ? 'border-black/15 bg-black/[0.03]' : 'border-white/15 bg-white/[0.04]'}`}>
-                <p className="text-6xl font-semibold tabular-nums">{lobbySecs}</p>
-                <p className={`mt-1 text-[11px] ${faint2}`}>Race starts — get ready to type</p>
+                <p className="font-game text-7xl font-black tabular-nums">{lobbySecs}</p>
+                <p className={`mt-1 font-game text-[13px] font-bold tracking-wider ${faint2}`}>RACE STARTS — GET READY TO TYPE</p>
               </div>
             ) : (
               <div className="mt-5 flex flex-wrap items-center gap-3">
                 {raceLive ? (
-                  <span className={`rounded-xl border px-4 py-3 text-[12px] ${light ? 'border-black/15 bg-black/[0.03] text-black/70' : 'border-white/15 bg-white/[0.05] text-white/70'}`}>Race in progress — you join the next round</span>
+                  <span className={`rounded-xl border px-4 py-3 text-[14px] font-bold ${light ? 'border-black/15 bg-black/[0.03] text-black/70' : 'border-white/15 bg-white/[0.05] text-white/70'}`}>Race in progress — you join the next round</span>
                 ) : host ? (
-                  <button onClick={startRace} className={primaryBtn}>Start race · 15s countdown →</button>
+                  <button onClick={startRace} className={`${primaryBtn} font-game text-[15px] font-bold tracking-wide`}>Start race · 15s countdown →</button>
                 ) : (
-                  <span className={`rounded-xl border px-4 py-3 text-[12px] ${light ? 'border-black/15 bg-black/[0.03] text-black/60' : 'border-white/15 bg-white/[0.04] text-white/60'}`}>Waiting for host to start…</span>
+                  <span className={`rounded-xl border px-4 py-3 text-[14px] font-bold ${light ? 'border-black/15 bg-black/[0.03] text-black/60' : 'border-white/15 bg-white/[0.04] text-white/60'}`}>Waiting for host to start…</span>
                 )}
                 <button onClick={() => { setJoined(false); setGo(false); }} className={ghostBtn}>Leave</button>
               </div>
