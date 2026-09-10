@@ -41,6 +41,7 @@ body {
 
 .font-display { font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.01em; }
 .font-game { font-family: 'Orbitron', 'Rajdhani', sans-serif; }
+.lobby-home-fonts .font-game { font-family: 'Bebas Neue', 'Rajdhani', sans-serif; letter-spacing: 0.08em; }
 .game-typing { font-family: 'Rajdhani', 'Orbitron', system-ui, sans-serif; font-weight: 600; }
 .game-glow { text-shadow: 0 0 12px rgba(0,229,255,0.45), 0 2px 0 rgba(0,0,0,0.6); }
 
