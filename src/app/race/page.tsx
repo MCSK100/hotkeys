@@ -53,6 +53,7 @@ function RaceLights({ remaining, large }: { remaining: number; large?: boolean }
 }
 
 const DURATIONS = [0, 3, 5, 10];
+const PRACTICE_DURATIONS = [0, 1, 3, 5, 10];
 
 function fmt(s: number) {
   const v = Math.max(0, Math.round(s));
@@ -65,6 +66,15 @@ function carOf(id: string) {
 
 function durLabel(mins: number) {
   return mins === 0 ? 'Sprint' : `${mins} min`;
+}
+
+function soloLabel(mins: number) {
+  return mins === 0 ? 'Quick test' : `${mins} min`;
+}
+
+function startSolo(engine: { newRace: () => void; startTimed: (m: number) => void }, mins: number) {
+  if (mins === 0) engine.newRace();
+  else engine.startTimed(mins);
 }
 
 export default function RacePage() {
@@ -121,15 +131,15 @@ export default function RacePage() {
   const prevPhase = useRef(engine.phase);
   const practiceGoal = engine.durationSec > 0 ? Math.max(1, (engine.durationSec / 60) * 200) : 1;
   const practiceProgress = Math.min(1, engine.correctChars / practiceGoal);
-  const laneProgress = mode === 'practice' ? practiceProgress : engine.isTimed ? engine.typed : engine.progress;
+  const laneProgress = mode === 'practice' ? (engine.isTimed ? practiceProgress : engine.progress) : engine.isTimed ? engine.typed : engine.progress;
 
   // Theme helpers — light / dark surfaces for the whole race page.
   const primaryBtn = light
-    ? 'rounded-xl bg-black px-5 py-2.5 text-[13px] font-semibold text-white transition hover:bg-black/80 disabled:opacity-40'
-    : 'rounded-xl bg-white px-5 py-2.5 text-[13px] font-semibold text-black transition hover:bg-gray-200 disabled:opacity-40';
+    ? 'rounded-xl bg-black px-5 py-2.5 font-game text-[13px] font-bold tracking-wide text-white transition hover:bg-black/80 disabled:opacity-40'
+    : 'rounded-xl bg-white px-5 py-2.5 font-game text-[13px] font-bold tracking-wide text-black transition hover:bg-gray-200 disabled:opacity-40';
   const ghostBtn = light
-    ? 'rounded-full border border-white/60 bg-white/45 backdrop-blur-md px-5 py-2.5 text-[13px] font-semibold text-black transition hover:bg-white/60 disabled:opacity-40'
-    : 'rounded-full border border-white/20 bg-white/[0.06] backdrop-blur-md px-5 py-2.5 text-[13px] font-semibold text-white/90 transition hover:bg-white/[0.12] disabled:opacity-40';
+    ? 'rounded-full border border-white/60 bg-white/45 backdrop-blur-md px-5 py-2.5 font-game text-[13px] font-bold tracking-wide text-black transition hover:bg-white/60 disabled:opacity-40'
+    : 'rounded-full border border-white/20 bg-white/[0.06] backdrop-blur-md px-5 py-2.5 font-game text-[13px] font-bold tracking-wide text-white/90 transition hover:bg-white/[0.12] disabled:opacity-40';
   const card = light
     ? 'border-white/60 bg-white/45 backdrop-blur-3xl shadow-[0_8px_24px_rgba(0,0,0,0.08)]'
     : 'border-white/15 bg-black/70 backdrop-blur-3xl shadow-[0_8px_24px_rgba(0,0,0,0.35)]';
@@ -178,7 +188,7 @@ export default function RacePage() {
     const d = Number(q.get('duration') ?? 0);
     const r = q.get('room');
     const w = q.get('weather') ?? '';
-    const validDur = [3, 5, 10].includes(d) ? d : 0;
+    const validDur = [0, 1, 3, 5, 10].includes(d) ? d : 0;
     const validWeather = isWeather(w) ? (w as WeatherId) : 'rain';
     if (r) {
       setMode('multiplayer');
@@ -192,7 +202,7 @@ export default function RacePage() {
       setMpWeather(validWeather);
     } else {
       setMode('practice');
-      if ([3, 5, 10].includes(d)) setDuration(d);
+      if ([0, 1, 3, 5, 10].includes(d)) setDuration(d);
       setWeather(validWeather);
     }
     setHistory(loadHistory().slice(0, 5));
@@ -466,22 +476,22 @@ export default function RacePage() {
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => { setMode('practice'); setJoined(false); window.history.replaceState(null, '', '/race?mode=practice'); }}
-            className={`rounded-full px-5 py-2.5 text-[13px] font-semibold transition ${mode === 'practice' ? (light ? 'bg-black text-white' : 'bg-white text-black') : (light ? 'bg-black/[0.05] text-black/70 hover:bg-black/10 hover:text-black' : 'bg-white/[0.06] text-white/70 hover:bg-white/10 hover:text-white')}`}
+            className={`rounded-full px-5 py-2.5 font-game text-[13px] font-bold tracking-wide transition ${mode === 'practice' ? (light ? 'bg-black text-white' : 'bg-white text-black') : (light ? 'bg-black/[0.05] text-black/70 hover:bg-black/10 hover:text-black' : 'bg-white/[0.06] text-white/70 hover:bg-white/10 hover:text-white')}`}
           >
-            Solo practice
+            SOLO PRACTICE
           </button>
           <button
             onClick={() => { setMode('multiplayer'); window.history.replaceState(null, '', '/race?mode=multiplayer'); }}
-            className={`rounded-full px-5 py-2.5 text-[13px] font-semibold transition ${mode === 'multiplayer' ? (light ? 'bg-black text-white' : 'bg-white text-black') : (light ? 'bg-black/[0.05] text-black/70 hover:bg-black/10 hover:text-black' : 'bg-white/[0.06] text-white/70 hover:bg-white/10 hover:text-white')}`}
+            className={`rounded-full px-5 py-2.5 font-game text-[13px] font-bold tracking-wide transition ${mode === 'multiplayer' ? (light ? 'bg-black text-white' : 'bg-white text-black') : (light ? 'bg-black/[0.05] text-black/70 hover:bg-black/10 hover:text-black' : 'bg-white/[0.06] text-white/70 hover:bg-white/10 hover:text-white')}`}
           >
-            Multiplayer
+            MULTIPLAYER
           </button>
           {mode === 'practice' && (
             <span className="ml-auto flex flex-wrap items-center gap-1.5">
-              {[3, 5, 10].map((mins) => (
+              {PRACTICE_DURATIONS.map((mins) => (
                 <button key={mins} onClick={() => setDuration(mins)}
-                  className={`rounded-full border px-3.5 py-2 text-[12px] font-medium transition ${duration === mins ? pickActive : pickIdle}`}>
-                  {mins} min
+                  className={`rounded-full border px-3.5 py-2 font-game text-[12px] font-bold tracking-wide transition ${duration === mins ? pickActive : pickIdle}`}>
+                  {soloLabel(mins).toUpperCase()}
                 </button>
               ))}
               <WeatherPicker small light={light} value={weather} onChange={setWeather} />
@@ -498,19 +508,19 @@ export default function RacePage() {
                   <AvatarImage wiki={avatar} size={40} light={light} />
                 </button>
                 <label className="flex items-center gap-2">
-                  <span className={`text-[11px] font-medium ${muted}`}>Driver</span>
+                  <span className={`font-game text-[11px] font-bold tracking-wider ${muted}`}>DRIVER</span>
                   <input value={name} data-name="1" maxLength={14} onChange={(e) => setName(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, ''))}
                     placeholder="YOUR NAME" aria-label="Racer name"
-                    className={`w-36 rounded-lg border px-3 py-2 text-[12px] font-medium outline-none ${inputCls}`} />
+                    className={`w-36 rounded-lg border px-3 py-2 font-game text-[12px] font-bold tracking-wide outline-none ${inputCls}`} />
                 </label>
               </span>
               <div className="flex flex-1 flex-wrap items-center gap-2">
-                <span className={`text-[11px] font-medium ${muted}`}>Garage</span>
+                <span className={`font-game text-[11px] font-bold tracking-wider ${muted}`}>GARAGE</span>
                 {CARS.map((c) => (
                   <button key={c.id} onClick={() => setCarId(c.id)} title={c.name} aria-label={c.name}
                     className={`rounded-xl border px-2 py-1.5 transition ${carBtn(carId === c.id)}`}>
                     <Car3D color={c.color} size="sm" />
-                    <span className={`mt-1 block text-center text-[10px] font-semibold ${carName(carId === c.id)}`}>{c.name}</span>
+                    <span className={`mt-1 block text-center font-game text-[10px] font-bold tracking-wide ${carName(carId === c.id)}`}>{c.name}</span>
                   </button>
                 ))}
               </div>
@@ -533,7 +543,7 @@ export default function RacePage() {
               <input value={name} data-name="1" maxLength={14}
                 onChange={(e) => { setName(e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, '')); setNameTouched(true); }}
                 placeholder="Enter your name to race" aria-label="Racer name"
-                className={`w-60 rounded-xl border px-4 py-3 text-[16px] font-bold outline-none ${inputCls} ${nameTouched && !nameValid ? (light ? '!border-red-500' : '!border-red-400') : ''}`} />
+                className={`w-60 rounded-xl border px-4 py-3 font-game text-[16px] font-bold tracking-wide outline-none ${inputCls} ${nameTouched && !nameValid ? (light ? '!border-red-500' : '!border-red-400') : ''}`} />
             </div>
             {nameTouched && !nameValid && (
               <p className="mt-1.5 text-[14px] font-bold text-red-500">Please enter your name to join the race.</p>
@@ -665,7 +675,7 @@ export default function RacePage() {
               <div className={`relative z-[6] flex items-center justify-between gap-2 border-b px-4 py-2.5 text-[11px] ${light ? 'border-black/10 text-black/60' : 'border-white/10 text-white/55'}`}>
                 <span className="truncate font-medium">
                   {finished ? 'Race complete'
-                    : mode === 'practice' ? `Solo · ${duration} min · ${car.name}` : mpTimed ? `Timed · ${roomDuration} min · Most typed wins` : `Sprint · Position P0${myPos} / 0${racers.length}`}
+                    : mode === 'practice' ? (duration === 0 ? `Solo · Quick test · ${car.name}` : `Solo · ${duration} min · ${car.name}`) : mpTimed ? `Timed · ${roomDuration} min · Most typed wins` : `Sprint · Position P0${myPos} / 0${racers.length}`}
                 </span>
                 <span className="flex shrink-0 items-center gap-2">
                   <span className={`rounded-full border px-2.5 py-1 ${light ? 'border-black/10 bg-black/[0.05] text-black/70' : 'border-white/10 bg-black/40 text-white/70'}`}>{activeWeather.name} · {activeWeather.sub}</span>
@@ -699,8 +709,8 @@ export default function RacePage() {
               {engine.phase === 'lobby' && (
                 <div className={`absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 rounded-2xl p-4 text-center ${light ? 'bg-white/85' : 'bg-black/70'}`}>
                   {mode === 'practice' ? (
-                    <button onClick={() => { savedRef.current = false; engine.startTimed(duration); setTimeout(focus, 350); }} className={primaryBtn}>
-                      {`Start ${duration} min sprint →`}
+                    <button onClick={() => { savedRef.current = false; startSolo(engine, duration); setTimeout(focus, 350); }} className={primaryBtn}>
+                      {duration === 0 ? 'Start quick test →' : `Start ${duration} min sprint →`}
                     </button>
                   ) : (
                     <p className={`text-[12px] ${faint2}`}>Waiting for host to start…</p>
@@ -711,7 +721,12 @@ export default function RacePage() {
               <div className="mb-3 flex items-center justify-between gap-3">
                 {(mode === 'practice' || mpTimed) && (
                 <p className={`text-[11px] ${light ? 'text-black/45' : 'text-white/45'}`}>
-                  {mode === 'practice' ? `Type for ${duration} minutes — car moves only with clean keys` : `Type for ${roomDuration} minutes — most typed wins`}
+                  {mode === 'practice' ? (duration === 0 ? 'Type the passage — finish as fast as you can' : `Type for ${duration} minutes — car moves only with clean keys`) : `Type for ${roomDuration} minutes — most typed wins`}
+                </p>
+                )}
+                {mode === 'practice' && duration === 0 && !engine.isTimed && (
+                <p className={`text-[11px] ${light ? 'text-black/45' : 'text-white/45'}`}>
+                  Type the passage — finish as fast as you can
                 </p>
                 )}
                 {engine.isTimed && <p className="shrink-0 text-sm font-semibold tabular-nums">{fmt(engine.timeLeft)}</p>}
@@ -751,7 +766,7 @@ export default function RacePage() {
                 }}
               />
               <div className="mt-5 grid grid-cols-4 gap-2">
-                {[['WPM', String(Math.round(wpm))], ['ACC', `${Math.round(engine.acc)}%`], [mode === 'practice' ? 'TIME' : 'POS', mode === 'practice' ? fmt(engine.timeLeft) : `P0${myPos}`], [mode === 'practice' ? 'GOAL' : 'DONE', `${Math.round(laneProgress * 100)}%`]].map(([k, v]) => (
+                {[['WPM', String(Math.round(wpm))], ['ACC', `${Math.round(engine.acc)}%`], [mode === 'practice' ? (engine.isTimed ? 'TIME' : 'TYPED') : 'POS', mode === 'practice' ? (engine.isTimed ? fmt(engine.timeLeft) : `${engine.charIndex}/${engine.text.length}`) : `P0${myPos}`], [mode === 'practice' ? 'GOAL' : 'DONE', `${Math.round(laneProgress * 100)}%`]].map(([k, v]) => (
                   <div key={k} className={`rounded-xl px-3 py-2.5 text-center ${light ? 'bg-black/[0.04]' : 'bg-white/[0.04]'}`}>
                     <p className={`text-[10px] font-medium ${light ? 'text-black/45' : 'text-white/45'}`}>{k}</p>
                     <p className="text-lg font-semibold tabular-nums">{v}</p>
@@ -765,13 +780,13 @@ export default function RacePage() {
                 <div className="flex flex-wrap items-end justify-between gap-3">
                   <div>
                     <p className={`text-[11px] font-medium ${muted}`}>
-                      {mode === 'practice' ? `${duration} min sprint — complete` : mpTimed ? `${roomDuration} min timed — complete · P0${myPos}` : `Results — P0${myPos} finish`}
+                      {mode === 'practice' ? (duration === 0 ? 'Quick test — complete' : `${duration} min sprint — complete`) : mpTimed ? `${roomDuration} min timed — complete · P0${myPos}` : `Results — P0${myPos} finish`}
                     </p>
                     <p className="mt-1 font-game text-4xl font-black tracking-wide md:text-5xl">WPM {Math.round(wpm)} <span className={`text-xl font-bold ${light ? 'text-black/50' : 'text-[#3B82F6]'}`}>· {Math.round(engine.acc)}% acc</span></p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     {mode === 'practice' ? (
-                      <button onClick={() => { savedRef.current = false; engine.startTimed(duration); setTimeout(focus, 350); }} className={primaryBtn}>Race again →</button>
+                      <button onClick={() => { savedRef.current = false; startSolo(engine, duration); setTimeout(focus, 350); }} className={primaryBtn}>Race again →</button>
                     ) : host ? (
                       <button onClick={doRematch} className={primaryBtn}>Rematch →</button>
                     ) : (

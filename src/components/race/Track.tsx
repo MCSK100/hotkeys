@@ -204,8 +204,8 @@ export function WeatherPicker({ value, onChange, small, light }: { value: Weathe
     <span className="inline-flex flex-wrap items-center gap-1.5">
       {WEATHER_IDS.map((id) => (
         <button key={id} onClick={() => onChange(id)} title={WEATHERS[id].name}
-          className={`rounded-full font-medium transition ${small ? 'px-3 py-1.5 text-[11px]' : 'px-4 py-2 text-[12px]'} ${value === id ? active : `border ${idle}`}`}>
-          {WEATHERS[id].name}
+          className={`rounded-full border font-game font-bold tracking-wide transition ${small ? 'px-3.5 py-2 text-[12px]' : 'px-5 py-2.5 text-[14px]'} ${value === id ? active : idle}`}>
+          {WEATHERS[id].name.toUpperCase()}
         </button>
       ))}
     </span>
