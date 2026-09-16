@@ -137,7 +137,7 @@ server.on('connection', (socket) => {
         playerId = String(profile.id ?? `guest-${Math.random().toString(36).slice(2)}`);
         const name = String(profile.name ?? 'RACER').slice(0, 16);
         const car = String(profile.car ?? 'volt').slice(0, 16);
-        const avatar = String(profile.avatar ?? '').slice(0, 80);
+        const avatar = String(profile.avatar ?? '').slice(0, 20000);
         const room = getRoom(code);
         roomCode = code;
         const existing = room.players.get(playerId);
@@ -178,6 +178,18 @@ server.on('connection', (socket) => {
         if (playerId !== room.hostId) return;
         const w = String(msg.payload?.weather ?? 'rain');
         room.weather = WEATHERS.includes(w) ? w : 'rain';
+        broadcast(room, { type: 'ROOM_STATE', room: snapshot(room) });
+      }
+      if (msg.type === 'UPDATE_PROFILE') {
+        if (!roomCode || !playerId) return;
+        const room = rooms.get(roomCode);
+        if (!room) return;
+        const pl = room.players.get(playerId);
+        if (!pl) return;
+        const profile = msg.payload?.profile ?? msg.payload ?? {};
+        if (typeof profile.name === 'string' && profile.name.trim()) pl.name = profile.name.slice(0, 16);
+        if (typeof profile.car === 'string' && profile.car) pl.car = profile.car.slice(0, 16);
+        if (typeof profile.avatar === 'string') pl.avatar = profile.avatar.slice(0, 20000);
         broadcast(room, { type: 'ROOM_STATE', room: snapshot(room) });
       }
       if (msg.type === 'PROGRESS') {

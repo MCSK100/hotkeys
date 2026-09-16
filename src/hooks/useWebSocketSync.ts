@@ -177,5 +177,21 @@ export function useRoom(roomCode: string | null, name: string, car: string, avat
     ws.send(JSON.stringify({ type: 'CHAT', payload: { text: clean, name: identityRef.current.name } }));
   }, []);
 
-  return { players, chat, sendChat, round, connected, lobbySecs, go, myId: idRef.current, hostId, roomStatus, send, startRace, startRematch, setGo, roomDuration, setDuration, roomWeather, setWeather };
+  const updateProfile = useCallback((profile: { name?: string; car?: string; avatar?: string }) => {
+    const ws = wsRef.current;
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    ws.send(JSON.stringify({ type: 'UPDATE_PROFILE', payload: { profile } }));
+  }, []);
+
+  // Push logo / car / name changes to the room live, without reconnecting.
+  const avatarKey = avatar;
+  const carKey = car;
+  const nameKey = name;
+  useEffect(() => {
+    if (!enabled || !roomCode || !connected) return;
+    const t = setTimeout(() => updateProfile({ name: nameKey, car: carKey, avatar: avatarKey }), 250);
+    return () => clearTimeout(t);
+  }, [enabled, roomCode, connected, avatarKey, carKey, nameKey, updateProfile]);
+
+  return { players, chat, sendChat, round, connected, lobbySecs, go, myId: idRef.current, hostId, roomStatus, send, startRace, startRematch, setGo, roomDuration, setDuration, roomWeather, setWeather, updateProfile };
 }

@@ -170,7 +170,10 @@ export default function RacePage() {
 
   const pickAvatar = (wiki: string) => {
     setAvatar(wiki);
-    try { localStorage.setItem('hk-race-avatar-v2', wiki); } catch { /* ignore */ }
+    try {
+      if (wiki.startsWith('data:') && wiki.length > 900000) return;
+      localStorage.setItem('hk-race-avatar-v2', wiki);
+    } catch { /* ignore quota */ }
   };
 
   const toggleTheme = () => {
@@ -407,7 +410,7 @@ export default function RacePage() {
       <div aria-hidden className="pointer-events-none fixed inset-0 z-0">
         <video autoPlay muted loop playsInline disablePictureInPicture preload="auto" tabIndex={-1}
           ref={(v) => { if (v) { v.muted = true; const p = v.play(); if (p) p.catch(() => {}); } }}
-          className="h-full w-full object-cover" style={{ transform: 'translateZ(0)' }}>
+          className="h-full w-full scale-105 object-cover blur-md" style={{ transform: 'translateZ(0) scale(1.05)' }}>
           <source src="/lobby-video.mp4" type="video/mp4" />
         </video>
         <div className={`absolute inset-0 ${light ? 'bg-white/55' : 'bg-black/68'}`} />
@@ -442,6 +445,11 @@ export default function RacePage() {
                 </span>
               </span>
             </button>
+            {inRoom && (
+              <button onClick={() => setAvatarOpen(true)} title="Change your logo" aria-label="Change your logo" className="shrink-0 rounded-full transition hover:scale-105">
+                <AvatarImage wiki={avatar} size={32} light={light} />
+              </button>
+            )}
             {inRoom && (
               <button onClick={(e) => { e.stopPropagation(); setChatOpen((o) => !o); }}
                 className={`rounded-full border px-3 py-1.5 font-game text-[12px] font-bold tracking-wider transition ${chatOpen ? (light ? 'border-black bg-black text-white' : 'border-white bg-white text-black') : (light ? 'border-black/15 text-black/70 hover:border-black/40 hover:text-black' : 'border-white/15 text-white/70 hover:border-white/40 hover:text-white')}`}>
@@ -638,13 +646,23 @@ export default function RacePage() {
               )}
               {players.map((p) => (
                 <div key={p.id} className={`flex items-center gap-3 rounded-xl border px-4 py-3 ${light ? 'border-black/10 bg-black/[0.03]' : 'border-white/10 bg-black/40'}`}>
-                  <AvatarImage wiki={p.id === myId ? avatar : p.avatar} size={34} light={light} />
+                  {p.id === myId ? (
+                    <button onClick={() => setAvatarOpen(true)} title="Change your logo" aria-label="Change your logo" className="shrink-0 rounded-full transition hover:scale-105">
+                      <AvatarImage wiki={avatar} size={34} light={light} />
+                    </button>
+                  ) : (
+                    <AvatarImage wiki={p.avatar} size={34} light={light} />
+                  )}
                   <Car3D color={carOf(p.id === myId ? carId : p.car).color} size="sm" />
                   <span className="font-game text-[16px] font-bold tracking-wide">{p.id === myId ? `${displayName} (YOU)` : p.name}</span>
                   {(hostId ? p.id === hostId : (p.id === myId && isHost)) && (
                     <span className={`rounded-md px-2 py-1 font-game text-[11px] font-bold ${light ? 'bg-black text-white' : 'bg-white text-black'}`}>HOST</span>
                   )}
-                  <span className="ml-auto font-game text-[12px] font-bold text-blue-600">Ready</span>
+                  {p.id === myId ? (
+                    <button onClick={() => setAvatarOpen(true)} className="ml-auto font-game text-[12px] font-bold text-blue-600 hover:underline">Change logo</button>
+                  ) : (
+                    <span className="ml-auto font-game text-[12px] font-bold text-blue-600">Ready</span>
+                  )}
                 </div>
               ))}
             </div>
