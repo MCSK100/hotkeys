@@ -408,8 +408,35 @@ export default function RacePage() {
   return (
     <main className={`relative min-h-screen font-body ${light ? 'text-[#14171c]' : 'text-[#eceef1]'}`} onClick={smartFocus}>
       <div aria-hidden className="pointer-events-none fixed inset-0 z-0">
-        <video autoPlay muted loop playsInline disablePictureInPicture preload="auto" tabIndex={-1}
-          ref={(v) => { if (v) { v.muted = true; v.playbackRate = 0.3; const p = v.play(); if (p) p.catch(() => {}); } }}
+        <video autoPlay muted playsInline disablePictureInPicture preload="auto" tabIndex={-1}
+          ref={(v) => {
+            if (!v || (v as HTMLVideoElement & { _pp?: boolean })._pp) return;
+            (v as HTMLVideoElement & { _pp?: boolean })._pp = true;
+            v.muted = true;
+            v.loop = false;
+            v.playbackRate = 0.3;
+            let reversing = false;
+            let raf = 0;
+            const stepBack = () => {
+              if (!reversing) return;
+              v.pause();
+              if (v.currentTime <= 0.06) {
+                reversing = false;
+                void v.play().catch(() => {});
+                return;
+              }
+              v.currentTime = Math.max(0, v.currentTime - 1 / 30);
+              raf = requestAnimationFrame(stepBack);
+            };
+            v.addEventListener('ended', () => {
+              reversing = true;
+              raf = requestAnimationFrame(stepBack);
+            });
+            v.addEventListener('play', () => {
+              if (reversing) { reversing = false; cancelAnimationFrame(raf); }
+            });
+            void v.play().catch(() => {});
+          }}
           className="h-full w-full scale-[1.02] object-cover blur-[2px]" style={{ transform: 'translateZ(0) scale(1.02)' }}>
           <source src="/256064_medium.mp4" type="video/mp4" />
         </video>
