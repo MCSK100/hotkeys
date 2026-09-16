@@ -412,28 +412,31 @@ export default function RacePage() {
           ref={(v) => {
             if (!v || (v as HTMLVideoElement & { _pp?: boolean })._pp) return;
             (v as HTMLVideoElement & { _pp?: boolean })._pp = true;
+            const SPEED = 0.3;
             v.muted = true;
             v.loop = false;
-            v.playbackRate = 0.3;
-            let reversing = false;
+            v.playbackRate = SPEED;
             let raf = 0;
-            const stepBack = () => {
-              if (!reversing) return;
+            let last = 0;
+            const reverseTick = (t: number) => {
+              if (!last) last = t;
+              const dt = Math.min(0.05, (t - last) / 1000);
+              last = t;
               v.pause();
-              if (v.currentTime <= 0.06) {
-                reversing = false;
+              const next = v.currentTime - dt * SPEED;
+              if (next <= 0.04) {
+                v.currentTime = 0;
+                last = 0;
+                cancelAnimationFrame(raf);
                 void v.play().catch(() => {});
                 return;
               }
-              v.currentTime = Math.max(0, v.currentTime - 1 / 30);
-              raf = requestAnimationFrame(stepBack);
+              v.currentTime = next;
+              raf = requestAnimationFrame(reverseTick);
             };
             v.addEventListener('ended', () => {
-              reversing = true;
-              raf = requestAnimationFrame(stepBack);
-            });
-            v.addEventListener('play', () => {
-              if (reversing) { reversing = false; cancelAnimationFrame(raf); }
+              last = 0;
+              raf = requestAnimationFrame(reverseTick);
             });
             void v.play().catch(() => {});
           }}
