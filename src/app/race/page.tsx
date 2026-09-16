@@ -410,7 +410,7 @@ export default function RacePage() {
       <div aria-hidden className="pointer-events-none fixed inset-0 z-0">
         <video autoPlay muted loop playsInline disablePictureInPicture preload="auto" tabIndex={-1}
           ref={(v) => { if (v) { v.muted = true; const p = v.play(); if (p) p.catch(() => {}); } }}
-          className="h-full w-full object-cover" style={{ transform: 'translateZ(0)' }}>
+          className="h-full w-full scale-[1.02] object-cover blur-[2px]" style={{ transform: 'translateZ(0) scale(1.02)' }}>
           <source src="/256064_medium.mp4" type="video/mp4" />
         </video>
         <div className={`absolute inset-0 ${light ? 'bg-white/55' : 'bg-black/68'}`} />
