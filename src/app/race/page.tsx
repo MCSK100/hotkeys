@@ -409,7 +409,7 @@ export default function RacePage() {
     <main className={`relative min-h-screen font-body ${light ? 'text-[#14171c]' : 'text-[#eceef1]'}`} onClick={smartFocus}>
       <div aria-hidden className="pointer-events-none fixed inset-0 z-0">
         <video autoPlay muted loop playsInline disablePictureInPicture preload="auto" tabIndex={-1}
-          ref={(v) => { if (v) { v.muted = true; v.playbackRate = 0.5; const p = v.play(); if (p) p.catch(() => {}); } }}
+          ref={(v) => { if (v) { v.muted = true; v.playbackRate = 0.3; const p = v.play(); if (p) p.catch(() => {}); } }}
           className="h-full w-full scale-[1.02] object-cover blur-[2px]" style={{ transform: 'translateZ(0) scale(1.02)' }}>
           <source src="/256064_medium.mp4" type="video/mp4" />
         </video>
